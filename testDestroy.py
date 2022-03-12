@@ -3,7 +3,6 @@
 # Author: Huyen Duong, huyeduon@cisco.com, TME CNBU.
 # Quality: POC
 # Requirements: python3, boto3, aws cli
-# changes
 # Delete tgw attachment 
 # Delete tgw route table 
 # Delete tgw
