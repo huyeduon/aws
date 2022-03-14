@@ -40,9 +40,9 @@ ec2client = session.client('ec2', config=htduong)
 
 # Inventory
 
-def listInfraEc2():
+def listIntance():
     # return a list of instanceId by filtering all instance who has tag key AciOwnerTag
-    infraEc2 = []
+    instanceIds = []
     custom_filter = [
         {
             'Name': 'tag:AciOwnerTag',
@@ -54,9 +54,9 @@ def listInfraEc2():
     for x2 in ecs['Reservations']:
         for x3 in x2['Instances']:
             instanceId = x3['InstanceId']
-            infraEc2.append(instanceId)
+            instanceIds.append(instanceId)
 
-    return infraEc2
+    return instanceIds
 
 def listSubnet():
     # return a list of subnet ID
@@ -154,6 +154,7 @@ def listTgwAttachment():
     listTgwConnectId = []
     listTgwPeeringId = []
     listTgwVpnId = []
+    listTgwDxGatewayId = []
     tgwAttachments = ec2client.describe_transit_gateway_attachments(
         Filters=custom_filter)
 
@@ -170,8 +171,11 @@ def listTgwAttachment():
         if tgwAttachment['ResourceType'] == 'vpn':
             listTgwVpnId.append(
                 tgwAttachment['TransitGatewayAttachmentId'])
+        if tgwAttachment['ResourceType'] == 'direct-connect-gateway':
+            listTgwDxGatewayId.append(
+                tgwAttachment['TransitGatewayAttachmentId'])
 
-    return listVpcAttachmentId, listTgwConnectId, listTgwPeeringId, listTgwVpnId
+    return listVpcAttachmentId, listTgwConnectId, listTgwPeeringId, listTgwVpnId, listTgwDxGatewayId
 
 def listTgwConnectPeer():
     listTgwConnectPeerId = []
@@ -229,10 +233,7 @@ def tgwConnectDeletionEligibility():
     return eligibleDeletion
 
 def delTgwConnectPeer(connectPeerId):    
-    tgwConPeer = ec2client.delete_transit_gateway_connect_peer(
-        TransitGatewayConnectPeerId=connectPeerId)
-    return tgwConPeer['TransitGatewayConnectPeer']['State']
-
+    ec2client.delete_transit_gateway_connect_peer(TransitGatewayConnectPeerId=connectPeerId)
 
 def delTgwConnect(attachmentId):
     custom_filter = [
@@ -240,17 +241,17 @@ def delTgwConnect(attachmentId):
             'Name': 'tag:AciOwnerTag',
             'Values': ['?*']
         }
-
     ]
-    response = ec2client.describe_transit_gateway_connect_peers(
-        Filters=custom_filter)
+    response = ec2client.describe_transit_gateway_connect_peers(Filters=custom_filter)
         
     tgwConnectPeers = response['TransitGatewayConnectPeers']
     
     while True:
         for tgwConnectPeer in tgwConnectPeers:
             if tgwConnectPeer['State'] not in ['deleted','deleting']:
-                delTgwConnectPeer(tgwConnectPeer['TransitGatewayConnectPeerId'])
+                if tgwConnectPeer['TransitGatewayConnectPeerId'] and tgwConnectPeer['TransitGatewayAttachmentId']==attachmentId:
+                    print('Deleting TGW Connect Peer ',tgwConnectPeer['TransitGatewayConnectPeerId'])
+                    delTgwConnectPeer(tgwConnectPeer['TransitGatewayConnectPeerId'])
 
         if tgwConnectDeletionEligibility():
             ec2client.delete_transit_gateway_connect(
@@ -284,7 +285,6 @@ def delTgwPeeringAttachment(attachmentId):
         raise
     else:
         return response
-
 
 def checkAttachmentExistence():
     # return number of tgw attachment including peering, vpn, vpc, connect.
@@ -406,20 +406,22 @@ def delTgwRouteTable(tgwRouteTableId):
                 if attachment['State'] != 'deleted':
                     delTgwConnect(attachment['TransitGatewayAttachmentId'])
 
-            print('Deleting VPC Attachments...')
+            print('Deleting TGW VPN, Peering, VPC Attachments...')
             print('Be patient...')
-            time.sleep(30)
 
             for attachment in attachmentInfoList:
+
                 if attachment['State'] != 'deleted' and attachment['ResourceType'] == 'vpn':
-                    if attachment['TransitGatewayAttachmentId']:
-                        delTgwVpnAttachment(attachment['TransitGatewayAttachmentId'])
+                    print('Deleting TGW VPN Attachment ', attachment['TransitGatewayAttachmentId'])
+                    delTgwVpnAttachment(attachment['TransitGatewayAttachmentId'])
+
                 if attachment['State'] != 'deleted' and attachment['ResourceType'] == 'peering':
-                    if attachment['TransitGatewayAttachmentId']:
-                        delTgwPeeringAttachment(attachment['TransitGatewayAttachmentId'])
+                    print('Deleting TGW Peering ', attachment['TransitGatewayAttachmentId'])
+                    delTgwPeeringAttachment(attachment['TransitGatewayAttachmentId'])
+
                 if attachment['State'] != 'deleted' and attachment['ResourceType'] == 'vpc':
-                    if attachment['TransitGatewayAttachmentId']:
-                        delTgwVpcAttachment(attachment['TransitGatewayAttachmentId'])
+                    print('Deleting TGW VPC Attachment ', attachment['TransitGatewayAttachmentId'])
+                    delTgwVpcAttachment(attachment['TransitGatewayAttachmentId'])
            
         elif tgwRtDeletionEligibility():
             try:
@@ -596,17 +598,22 @@ def delVpc(vpc):
     ec2client.delete_vpc(VpcId=vpc)
    
 def main():
+    print("All TGW Attachments:")
+    tgwVpcAtt, tgwConnectAtt, tgwPeeringAtt, tgwVpnAtt, tgwDxGatewayAtt = listTgwAttachment()
+    print("TGW VPC Attachment: ", tgwVpcAtt)
+    print("TGW Connect Attachment: ", tgwConnectAtt)
+    print("TGW VPN Attachment: ", tgwVpnAtt)
+    print("TGW Peering Attachment: ", tgwPeeringAtt)
+    print("TGW DX Gateway Attachment: ", tgwDxGatewayAtt)
+    time.sleep(2)
 
-    print("1.Deleting TGW Attachments")
-    print("2.Deleting TGW Route Table")
-    print("3.Deleting TGW")
-    print(".........................")
-
-    print('Starting delete TGW Route Table')
+    print("Cleaning TGW and its related objects...")
+    print('Starting delete TGW Route Table........')
     tgwRtIds = listTgwRt()
     for tgwRtId in tgwRtIds:
         delTgwRouteTable(tgwRtId)
     print("TGW Route Table deletion completed.")
+
     print("=========******====================")
 
     print("Starting delete TGW")
@@ -614,16 +621,12 @@ def main():
     for tgwId in tgwIds:
         delTgw(tgwId)
     print("TGW deletion completed.")
-
     print("=========******====================")
-    print("=========******====================")
-    print("=========******====================")
-   
     '''
     # inventory 
     print("Inventory...")
 
-    inst = listInfraEc2()
+    inst = listIntance()
     subnets = listSubnet()
     sgs = listSg()
     rts = listRt()
