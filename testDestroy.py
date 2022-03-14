@@ -13,7 +13,6 @@
 # Detach any internet gateways or virtual private gateways
 # Delete VPC
 
-from email.policy import default
 from urllib import response
 import logging
 import boto3
@@ -39,13 +38,15 @@ session = boto3.session.Session(profile_name='htduong')
 ec2 = session.resource('ec2', config=htduong)
 ec2client = session.client('ec2', config=htduong)
 
+# Inventory
+
 def listInfraEc2():
-    # return a list of instanceId by filtering all instance who has tag key owner, tag value huyen
+    # return a list of instanceId by filtering all instance who has tag key AciOwnerTag
     infraEc2 = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
 
     ]
@@ -62,8 +63,8 @@ def listSubnet():
     subnetIds = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
     subnets = ec2client.describe_subnets(Filters=custom_filter)
@@ -76,8 +77,8 @@ def listSg():
     sgIds = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
     sgs = ec2client.describe_security_groups(Filters=custom_filter)
@@ -90,8 +91,8 @@ def listRt():
     rtIds = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
     rts = ec2client.describe_route_tables(Filters=custom_filter)
@@ -104,8 +105,8 @@ def listIgw():
     igwIds = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
     igws = ec2client.describe_internet_gateways(Filters=custom_filter)
@@ -117,8 +118,8 @@ def listVpc():
     vpcIds = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
     vpcs = ec2client.describe_vpcs(Filters=custom_filter)
@@ -131,8 +132,8 @@ def listTgw():
     listTgwId = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
 
     ]
@@ -142,13 +143,60 @@ def listTgw():
 
     return listTgwId
 
+def listTgwAttachment():
+    custom_filter = [
+        {
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
+        }
+    ]
+    listVpcAttachmentId = []
+    listTgwConnectId = []
+    listTgwPeeringId = []
+    listTgwVpnId = []
+    tgwAttachments = ec2client.describe_transit_gateway_attachments(
+        Filters=custom_filter)
+
+    for tgwAttachment in tgwAttachments['TransitGatewayAttachments']:
+        if tgwAttachment['ResourceType'] == 'vpc':
+            listVpcAttachmentId.append(
+                tgwAttachment['TransitGatewayAttachmentId'])
+        if tgwAttachment['ResourceType'] == 'connect':
+            listTgwConnectId.append(
+                tgwAttachment['TransitGatewayAttachmentId'])
+        if tgwAttachment['ResourceType'] == 'peering':
+            listTgwPeeringId.append(
+                tgwAttachment['TransitGatewayAttachmentId'])
+        if tgwAttachment['ResourceType'] == 'vpn':
+            listTgwVpnId.append(
+                tgwAttachment['TransitGatewayAttachmentId'])
+
+    return listVpcAttachmentId, listTgwConnectId, listTgwPeeringId, listTgwVpnId
+
+def listTgwConnectPeer():
+    listTgwConnectPeerId = []
+    custom_filter = [
+        {
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
+        }
+
+    ]
+    tgwConnectPeerId = ec2client.describe_transit_gateway_connect_peers(
+        Filters=custom_filter)
+
+    for x2 in tgwConnectPeerId['TransitGatewayConnectPeers']:
+        listTgwConnectPeerId.append(x2['TransitGatewayConnectPeerId'])
+
+    return listTgwConnectPeerId
+
 def listTgwRt():
     # return list of TGW Route Table ID who has tag key=owner, value=huyen
     listTgwRtId = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
 
     ]
@@ -160,6 +208,54 @@ def listTgwRt():
 
     return listTgwRtId
 
+def tgwConnectDeletionEligibility():
+    # check if all TGW connect peer are in deleted state -> return true, else return false
+    eligibleDeletion = True
+    custom_filter = [
+        {
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
+        }
+    ]
+    response = ec2client.describe_transit_gateway_connect_peers(
+    Filters=custom_filter)
+    tgwConnectPeers = response['TransitGatewayConnectPeers']
+    if len(tgwConnectPeers) == 0:
+        eligibleDeletion = True
+    else:
+        for tgwConnectPeer in tgwConnectPeers:
+            if tgwConnectPeer['State'] != 'deleted':
+                eligibleDeletion = False
+    return eligibleDeletion
+
+def delTgwConnectPeer(connectPeerId):    
+    tgwConPeer = ec2client.delete_transit_gateway_connect_peer(
+        TransitGatewayConnectPeerId=connectPeerId)
+    return tgwConPeer['TransitGatewayConnectPeer']['State']
+
+
+def delTgwConnect(attachmentId):
+    custom_filter = [
+        {
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
+        }
+
+    ]
+    response = ec2client.describe_transit_gateway_connect_peers(
+        Filters=custom_filter)
+        
+    tgwConnectPeers = response['TransitGatewayConnectPeers']
+    
+    while True:
+        for tgwConnectPeer in tgwConnectPeers:
+            if tgwConnectPeer['State'] not in ['deleted','deleting']:
+                delTgwConnectPeer(tgwConnectPeer['TransitGatewayConnectPeerId'])
+
+        if tgwConnectDeletionEligibility():
+            ec2client.delete_transit_gateway_connect(
+                TransitGatewayAttachmentId=attachmentId)
+
 def delTgwVpcAttachment(attachmentId):
     try:
         ec2client.delete_transit_gateway_vpc_attachment(TransitGatewayAttachmentId=attachmentId)
@@ -169,51 +265,88 @@ def delTgwVpcAttachment(attachmentId):
     else:
         return response
 
+def delTgwVpnAttachment(attachmentId):
+    try:
+        ec2client.delete_transit_gateway_vpc_attachment(
+            TransitGatewayAttachmentId=attachmentId)
+    except ClientError:
+        logger.exception("Could not delete TGW VPN attachment!")
+        raise
+    else:
+        return response
+
+def delTgwPeeringAttachment(attachmentId):
+    try:
+        ec2client.delete_transit_gateway_peering_attachment(
+            TransitGatewayAttachmentId=attachmentId)
+    except ClientError:
+        logger.exception("Could not delete TGW Peering attachment!")
+        raise
+    else:
+        return response
+
+
 def checkAttachmentExistence():
-    # return number of attachment and list of attachment ID
+    # return number of tgw attachment including peering, vpn, vpc, connect.
+    # attachmentInfoList does not contain tgw connect.
     attachmentInfoList = []
+    connectAttachmentInfoList = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
-    tgw = ec2client.describe_transit_gateway_vpc_attachments(
+    tgwAttachments = ec2client.describe_transit_gateway_attachments(
         Filters=custom_filter)
-    # x2 is list of attachment
-    x2 = tgw['TransitGatewayVpcAttachments']
-    numOfAttachment = len(x2)
-    for x3 in x2:
-        attachmentInfo = {}
-        attachmentInfo['TransitGatewayAttachmentId'] = x3['TransitGatewayAttachmentId']
-        attachmentInfo['State'] = x3['State']
-        attachmentInfoList.append(attachmentInfo)
+    numOfAttachment = len(tgwAttachments['TransitGatewayAttachments'])
 
-    return numOfAttachment, attachmentInfoList
+    for tgwAttachment in tgwAttachments['TransitGatewayAttachments']:
+        attachmentInfo = {}
+        connectAttachmentInfo = {}
+
+        if tgwAttachment['ResourceType'] != 'connect':
+            # if not tgw connect attachment
+            attachmentInfo['TransitGatewayAttachmentId'] = tgwAttachment['TransitGatewayAttachmentId']
+            attachmentInfo['State'] = tgwAttachment['State']
+            attachmentInfo['ResourceType'] = tgwAttachment['ResourceType']
+            attachmentInfoList.append(attachmentInfo)
+
+        if tgwAttachment['ResourceType'] == 'connect':
+            connectAttachmentInfo['TransitGatewayAttachmentId'] = tgwAttachment['TransitGatewayAttachmentId']
+            connectAttachmentInfo['State'] = tgwAttachment['State']
+            connectAttachmentInfo['ResourceType'] = tgwAttachment['ResourceType']
+            connectAttachmentInfoList.append(connectAttachmentInfo)
+
+    return numOfAttachment, attachmentInfoList, connectAttachmentInfoList
 
 def tgwRtDeletionEligibility():
-    # check if all tunnel are in deleted state, return true, else return false
+    # check if all TGW attachment are in deleted state -> return true, else return false
     eligibleDeletion = True
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
-    tgw = ec2client.describe_transit_gateway_vpc_attachments(
+    tgw = ec2client.describe_transit_gateway_attachments(
         Filters=custom_filter)
-    x2 = tgw['TransitGatewayVpcAttachments']
-    for x3 in x2:
-        if x3['State'] != 'deleted':
-            eligibleDeletion = False
+    x2 = tgw['TransitGatewayAttachments']
+
+    if len(x2) == 0:
+        eligibleDeletion = True
+    else:
+        for x3 in x2:
+            if x3['State'] != 'deleted':
+                eligibleDeletion = False
     return eligibleDeletion
 
 def defaultAssociationStateCheck():
     # return default route table association state "enable" or "disable"
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
     tgw = ec2client.describe_transit_gateways(Filters=custom_filter)
@@ -221,32 +354,73 @@ def defaultAssociationStateCheck():
         defaultAssociationState = x2['Options']['DefaultRouteTableAssociation']
     return defaultAssociationState
 
-def disableDefaultAssociationAndPropagation(tgwId):
-    ec2client.modify_transit_gateway(TransitGatewayId=tgwId, Options={
-        'DefaultRouteTableAssociation': 'disable',
-        'DefaultRouteTablePropagation': 'disable' 
+def defaultPropagationStateCheck():
+    # return default route table association state "enable" or "disable"
+    custom_filter = [
+        {
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
+    ]
+    tgw = ec2client.describe_transit_gateways(Filters=custom_filter)
+    for x2 in tgw['TransitGateways']:
+        defaultPropagationState = x2['Options']['DefaultRouteTablePropagation']
+    return defaultPropagationState
+
+def disableDefaultAssociation(tgwId):
+    ec2client.modify_transit_gateway(TransitGatewayId=tgwId, Options={
+        'DefaultRouteTableAssociation': 'disable'
+        }
+    )
+
+def disableDefaultPropagation(tgwId):
+    ec2client.modify_transit_gateway(TransitGatewayId=tgwId, Options={
+        'DefaultRouteTablePropagation': 'disable'
+    }
     )
 
 def delTgwRouteTable(tgwRouteTableId):
     # delete TGW Route Table
     while True:
-        time.sleep(30)
-        numOfAttachment, attachmentInfoList = checkAttachmentExistence()
+        time.sleep(5)
+        numOfAttachment, attachmentInfoList, connectAttachmentInfoList = checkAttachmentExistence()
         defaultAssociationState = defaultAssociationStateCheck()
+        defaultPropagationState = defaultPropagationStateCheck()
         if defaultAssociationState == 'enable':
-            print('Disable default route association...')
+            print('Disable default route table association...')
             Tgws = listTgw()
             for tgw in Tgws:
-                disableDefaultAssociationAndPropagation(tgw)
+                disableDefaultAssociation(tgw)
+        if defaultPropagationState == 'enable':
+            print('Disable default route table propagation...')
+            Tgws = listTgw()
+            for tgw in Tgws:
+                disableDefaultPropagation(tgw)
         # if still have attachment and exist at least one attachment not in Deleted state
         if numOfAttachment != 0 and not tgwRtDeletionEligibility():
-            print('Deleting VPC Attachment...')
+            
+            print('Deleting TGW Connect...')
             print('Be patient...')
-            for attachment in attachmentInfoList:
-                print(attachment)
+
+            for attachment in connectAttachmentInfoList:
                 if attachment['State'] != 'deleted':
-                    delTgwVpcAttachment(attachment['TransitGatewayAttachmentId'])
+                    delTgwConnect(attachment['TransitGatewayAttachmentId'])
+
+            print('Deleting VPC Attachments...')
+            print('Be patient...')
+            time.sleep(30)
+
+            for attachment in attachmentInfoList:
+                if attachment['State'] != 'deleted' and attachment['ResourceType'] == 'vpn':
+                    if attachment['TransitGatewayAttachmentId']:
+                        delTgwVpnAttachment(attachment['TransitGatewayAttachmentId'])
+                if attachment['State'] != 'deleted' and attachment['ResourceType'] == 'peering':
+                    if attachment['TransitGatewayAttachmentId']:
+                        delTgwPeeringAttachment(attachment['TransitGatewayAttachmentId'])
+                if attachment['State'] != 'deleted' and attachment['ResourceType'] == 'vpc':
+                    if attachment['TransitGatewayAttachmentId']:
+                        delTgwVpcAttachment(attachment['TransitGatewayAttachmentId'])
+           
         elif tgwRtDeletionEligibility():
             try:
                 ec2client.delete_transit_gateway_route_table(
@@ -265,8 +439,8 @@ def checkInstanceExistence():
     instanceInfoList = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
     x1 = ec2client.describe_instances(Filters=custom_filter)
@@ -288,8 +462,8 @@ def subnetDeletionEligibility():
     eligibleDeletion = True
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
     x1 = ec2client.describe_instances(Filters=custom_filter)
@@ -347,8 +521,8 @@ def checkIgwExistence():
     igwInfoList = []
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
     x1 = ec2client.describe_internet_gateways(Filters=custom_filter)
@@ -375,8 +549,8 @@ def igwDeletionEligibility():
     eligibleDeletion = True
     custom_filter = [
         {
-            'Name': 'tag:owner',
-            'Values': ['huyen']
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
         }
     ]
     x1 = ec2client.describe_internet_gateways(Filters=custom_filter)
@@ -422,14 +596,20 @@ def delVpc(vpc):
     ec2client.delete_vpc(VpcId=vpc)
    
 def main():
-    print("Deleting TGW Route Table")
+
+    print("1.Deleting TGW Attachments")
+    print("2.Deleting TGW Route Table")
+    print("3.Deleting TGW")
+    print(".........................")
+
+    print('Starting delete TGW Route Table')
     tgwRtIds = listTgwRt()
     for tgwRtId in tgwRtIds:
         delTgwRouteTable(tgwRtId)
     print("TGW Route Table deletion completed.")
     print("=========******====================")
 
-    print("Deleting TGW")
+    print("Starting delete TGW")
     tgwIds = listTgw()
     for tgwId in tgwIds:
         delTgw(tgwId)
@@ -438,7 +618,8 @@ def main():
     print("=========******====================")
     print("=========******====================")
     print("=========******====================")
-
+   
+    '''
     # inventory 
     print("Inventory...")
 
@@ -484,7 +665,7 @@ def main():
         print("Deleting VPC:")
         for vpc in vpcs:
             delVpc(vpc)
-
+    '''
     print("Congratulations, all resources have been decomissioned successfully!")
  
 if __name__ == "__main__":
