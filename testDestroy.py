@@ -250,7 +250,6 @@ def delTgwConnect(attachmentId):
                 if tgwConnectPeer['TransitGatewayConnectPeerId'] and tgwConnectPeer['TransitGatewayAttachmentId']==attachmentId:
                     print('Deleting TGW Connect Peer ',tgwConnectPeer['TransitGatewayConnectPeerId'])
                     delTgwConnectPeer(tgwConnectPeer['TransitGatewayConnectPeerId'])
-                    time.sleep(10)
         if tgwConnectDeletionEligibility():
             ec2client.delete_transit_gateway_connect(
                 TransitGatewayAttachmentId=attachmentId)
