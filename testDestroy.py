@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: Huyen Duong, huyeduon@cisco.com, TME CNBU.
-# Quality: POC
 # Requirements: python3, boto3, aws cli
 # Delete tgw attachment 
 # Delete tgw route table 
@@ -252,7 +250,7 @@ def delTgwConnect(attachmentId):
                 if tgwConnectPeer['TransitGatewayConnectPeerId'] and tgwConnectPeer['TransitGatewayAttachmentId']==attachmentId:
                     print('Deleting TGW Connect Peer ',tgwConnectPeer['TransitGatewayConnectPeerId'])
                     delTgwConnectPeer(tgwConnectPeer['TransitGatewayConnectPeerId'])
-
+                    time.sleep(10)
         if tgwConnectDeletionEligibility():
             ec2client.delete_transit_gateway_connect(
                 TransitGatewayAttachmentId=attachmentId)
@@ -622,9 +620,9 @@ def main():
         delTgw(tgwId)
     print("TGW deletion completed.")
     print("=========******====================")
-    '''
+
     # inventory 
-    print("Inventory...")
+    print("Intances, VPCs......")
 
     inst = listIntance()
     subnets = listSubnet()
@@ -650,10 +648,12 @@ def main():
         print("Deleting subnets...")
         for subnet in subnets:
             delSubnet(subnet)
+
     if len(sgs) != 0:
         print("Deleting Security Groups...")
         for sg in sgs:
             delSg(sg)
+
     if len(rts) != 0:
         print("Deleting Route Tables...")
         for rt in rts:
@@ -668,7 +668,7 @@ def main():
         print("Deleting VPC:")
         for vpc in vpcs:
             delVpc(vpc)
-    '''
+    
     print("Congratulations, all resources have been decomissioned successfully!")
  
 if __name__ == "__main__":
