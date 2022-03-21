@@ -17,17 +17,17 @@ You need to create terraform.tfvars with similar content:
 - region     = "us-east-1"
 
 Then run terraform against main.tf file.
-The main.tf script will create VPCs, Instances, TGW, TGW Attachment, TGW Connect, Security Groups, Internet Gateway.
-Remember to set the tag to what you want.
+The main.tf script will create VPCs, Instances, TGW, TGW VPC Attachment, TGW Connect, Security Groups, Internet Gateway.
+Remember to set the tag to AWS resources. The tag here is extremely important as the infraDecom.py script will look at the tag to build inventory of AWS resources first before decommissioning.
 
-The tag using in main.tf file:
+The tag using in main.tf script:
 
 tags = {
     Name = "vpc1",
     owner = "huyen"
 }
 
-The custom filter in infraDecom.py file:
+The custom filter in infraDecom.py script:
 
 custom_filter = [
     {
@@ -38,8 +38,6 @@ custom_filter = [
 ]
 
 owner in tag in main.tf must match Values in custom_filter.
-
-This is what you needed to test the decommission script.
 
 # Run the script to decommission AWS resources:
 
