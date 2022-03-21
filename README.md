@@ -5,7 +5,7 @@
 - Boto3
 - alive_progress
 
-infraDemo.py script use config session from Boto3, the profile_name='htduong' is AWS profile configured in your laptop (or remote server where you run this infraDemo.py script. Please set it to match your working environment.)
+infraDemo.py script use config session from Boto3, the profile_name='htduong' is AWS profile configured in your laptop (or remote server where you run this infraDemo.py script). Make sure to set it to match your working environment.
 
 For detailed packages, please look at file requirements.txt
 
@@ -44,3 +44,8 @@ This is what you needed to test the decommission script.
 # Run the script to decommission AWS resources:
 
 python3 infraDecom.py
+
+# References
+
+[https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html]
+[https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html]
