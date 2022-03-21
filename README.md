@@ -47,5 +47,5 @@ python3 infraDecom.py
 
 # References
 
-[https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html]
-[https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html]
+https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html
+https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html
