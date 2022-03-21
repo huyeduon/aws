@@ -1,6 +1,6 @@
 # Overview
-- infraDemo.py is a python script that helps to decommission AWS resources in your account.
-- terraform script is a utility to deploy resources quickly so you can focus on testing your infraDemo.py script.
+- infraDemo.py is a python script that helps to decommission AWS resources in your account. The script is built to resolve AWS resource dependencies, it can delete all resources in a single run.
+- main.tf is a terraform script that helps to deploy resources quickly so you can focus on testing your infraDemo.py script.
 # Requirements to run python script:
 - Boto3
 - alive_progress
