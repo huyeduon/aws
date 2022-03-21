@@ -2,19 +2,19 @@
 infraDemo.py is a python script that helps to decomission AWS resources in your account.
 terraform script is utility to deploy resources quickly so you can focus on testing your infraDemo.py script.
 # Requirements to run python script:
-Boto3
-alive_progress
+- Boto3
+- alive_progress
 
 infraDemo.py script use config session from Boto3, the profile_name='htduong' is AWS profile configured in your laptop (or remote server where you run this infraDemo.py script. Please set it to match your working environment.)
 
 For detail packges, please look at file requirements.txt
 
 # Terraform to build test infra
-You need to create terraform.tfvars with content similar:
+You need to create terraform.tfvars with similar content:
 
-access_key = ""
-secret_key = ""
-region     = "us-east-1"
+- access_key = ""
+- secret_key = ""
+- region     = "us-east-1"
 
 Then run terraform against main.tf file.
 The main.tf script will create: VPCs, Instances, TGW, TGW Attachment, TGW Connect, Security Groups, Internet Gateway.
