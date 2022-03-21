@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: huyeduon@cisco.com
 # Requirements: python3, boto3, aws cli
 # Delete tgw attachment
 # Delete tgw route table
