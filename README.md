@@ -2,7 +2,7 @@
 Boto3
 alive_progress
 ..............
-For detai, pls look at file requirements.txt
+For detail, pls look at file requirements.txt
 
 # Terraform to build test infra
 You need to create terraform.tfvars with content similar:
@@ -36,7 +36,7 @@ owner in tag in main.tf must match Values in custom_filter.
 
 This is what you needed to test decomission script.
 
-# Run the script to decommssion:
+# Run the script to decommission AWS resources:
 
 python3 infraDecom.py
 
