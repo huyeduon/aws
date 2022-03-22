@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# Author: huyeduon@cisco.com
 # Requirements: python3, boto3, aws cli
 # Delete tgw attachment
 # Delete tgw route table
@@ -10,6 +12,7 @@
 # Delete custom route tables
 # Detach any internet gateways or virtual private gateways
 # Delete VPC
+# Delete Cloud APIC CFT Templates
 
 import logging
 from random import randrange
@@ -30,14 +33,14 @@ htduong = Config(
 
 session = boto3.session.Session(profile_name='htduong')
 ec2client = session.client('ec2', config=htduong)
+cftclient = session.client('cloudformation', config=htduong)
 
 ### custom filter
 custom_filter = [
     {
-        'Name': 'tag:owner',
-        'Values': ['huyen']
+        'Name': 'tag:AciOwnerTag',
+        'Values': ['?*']
     }
-
 ]
 ### end of custom filter
 
@@ -47,6 +50,87 @@ def aliveBar(x, sleepSpeed=0.05, title=''):
         for i in range(int(x)):
             time.sleep(float(sleepSpeed))
             bar()
+
+
+def listEip():
+    """
+    return a list of IP
+    """
+    eip_filter = [
+        {
+            'Name': 'tag:AciOwnerTag',
+            'Values': ['?*']
+        }
+    ]
+
+    listEipInfo = []
+    eip_response = ec2client.describe_addresses(Filters=eip_filter)
+    eips = eip_response['Addresses']
+
+    for eip in eips:
+        eipInfo = {}
+        eipInfo['PublicIp'] = eip['PublicIp']
+        eipInfo['AllocationId'] = eip['AllocationId']
+        listEipInfo.append(eipInfo)
+
+    return listEipInfo
+
+
+def listcApicEip():
+    """
+    return a list of IP
+    """
+    capic_filter = [
+        {
+            'Name': 'tag:aws:cloudformation:logical-id',
+            'Values': ['rCAPICElasticIP']
+        }
+    ]
+    listcApicEipInfo = []
+
+    capic_response = ec2client.describe_addresses(Filters=capic_filter)
+    eips = capic_response['Addresses']
+    for eip in eips:
+        eipInfo = {}
+        eipInfo['PublicIp'] = eip['PublicIp']
+        eipInfo['AllocationId'] = eip['AllocationId']
+        listcApicEipInfo.append(eipInfo)
+
+    return listcApicEipInfo
+
+
+def releaseEip(allocId):
+    """
+    release EIP
+    """
+    ec2client.release_address(AllocationId=allocId)
+
+
+def listcAicEni():
+    """
+    return a cAPIC ENI
+    """
+    capicEni_filter = [
+        {
+            'Name': 'tag:aws:cloudformation:logical-id',
+            'Values': ['rCAPICInfraInterface']
+        }
+    ]
+
+    listcApicEni = []
+
+    response = ec2client.describe_network_interfaces(
+        Filters=capicEni_filter)
+    capicEni = response['NetworkInterfaces']
+    for eni in capicEni:
+        listcApicEni.append(eni['NetworkInterfaceId'])
+
+    return listcApicEni
+
+
+def delEni(eni):
+    ec2client.delete_network_interface(NetworkInterfaceId=eni)
+
 
 def listTgw():
     """
@@ -86,6 +170,7 @@ def listTgwVpcAttachment(tgwId):
 
     return listTgwVpcAttachmentInfo
 
+
 def listTgwConnect(tgwId):
     """
     return a list of TGW Connect Attachment of Transit Gateway whose ID is tgwId
@@ -106,6 +191,7 @@ def listTgwConnect(tgwId):
         listTgwConnectInfo.append(tgwConnectInfo)
 
     return listTgwConnectInfo
+
 
 def listTgwConnectPeer(tgwConnectAttachId):
     """
@@ -129,6 +215,7 @@ def listTgwConnectPeer(tgwConnectAttachId):
 
     return listTgwConnectPeerInfo
 
+
 def listTgwPeering(tgwId):
     """
     return a list of TGW Peering Attachment of Transit Gateway whose ID is tgwId
@@ -151,6 +238,7 @@ def listTgwPeering(tgwId):
 
     return listTgwPeeringInfo
 
+
 def listInstance():
     """
     return a list of TGW has tag key=owner, value=huyen
@@ -171,8 +259,9 @@ def listInstance():
                 else:
                     instanceInfo['VpcId'] = ''
                 listInstanceInfo.append(instanceInfo)
-            
+
     return listInstanceInfo
+
 
 def listVpc():
     """
@@ -188,12 +277,13 @@ def listVpc():
 
     return listVpcInfo
 
+
 def listSubnet():
     """ 
     return a list of subnet ID each has properties: ID, VPC ID and State
     """
     listSubnetInfo = []
- 
+
     subnets = ec2client.describe_subnets(Filters=custom_filter)
     for x2 in subnets['Subnets']:
         subnetInfo = {}
@@ -204,6 +294,7 @@ def listSubnet():
 
     return listSubnetInfo
 
+
 def listSg():
     """
     return a list of security groups with properties ID, VPC ID, IngressRules, EgressRule
@@ -211,7 +302,7 @@ def listSg():
     listSgInfo = []
     sgs = ec2client.describe_security_groups(Filters=custom_filter)
     for x2 in sgs['SecurityGroups']:
-        sgInfo= {}
+        sgInfo = {}
         sgInfo['GroupName'] = x2['GroupName']
         sgInfo['Id'] = x2['GroupId']
         sgInfo['VpcId'] = x2['VpcId']
@@ -232,6 +323,7 @@ def listSg():
         listSgInfo.append(sgInfo)
 
     return listSgInfo
+
 
 def listSgRules(sgId):
     """
@@ -256,12 +348,13 @@ def listSgRules(sgId):
 
     return ingressRules, egressRules
 
+
 def listRt():
     """
     return a list of route table with properties of RouteTableId, VPC ID
     """
     listRtInfo = []
-    
+
     rts = ec2client.describe_route_tables(Filters=custom_filter)
     for x2 in rts['RouteTables']:
         rtInfo = {}
@@ -271,27 +364,31 @@ def listRt():
 
     return listRtInfo
 
+
 def listIgw():
     """
     return a list of Internet Gateways with properties State and VPC ID
     """
-
     listIgwInfo = []
     igws = ec2client.describe_internet_gateways(Filters=custom_filter)
     for x2 in igws['InternetGateways']:
         igwInfo = {}
-        igwInfo['Id'] = x2['InternetGatewayId']
-        igwInfo['State'] = x2['Attachments'][0]['State']
-        igwInfo['VpcId'] = x2['Attachments'][0]['VpcId']
-        listIgwInfo.append(igwInfo)
-    
+        if x2['Attachments']:
+            igwInfo['Id'] = x2['InternetGatewayId']
+
+            igwInfo['State'] = x2['Attachments'][0]['State']
+            igwInfo['VpcId'] = x2['Attachments'][0]['VpcId']
+            listIgwInfo.append(igwInfo)
+        else:
+            print('Internet Gateway is detached.')
+
     return listIgwInfo
+
 
 def delTgwConnectPeer(connectPeerId):
     """
     delete tgw connnect peers of tgw connect attachment whose ID is connectPeerId
     """
-
     ec2client.delete_transit_gateway_connect_peer(
         TransitGatewayConnectPeerId=connectPeerId)
 
@@ -331,7 +428,8 @@ def delTgwConnect(connectAttachmentId):
         else:
             if all(element == 'deleted' for element in listState):
                 eligibleDeletion = True
-                print("All peers in deleted state, start deleting TGW Connect Attachment...")
+                print(
+                    "All peers in deleted state, start deleting TGW Connect Attachment...")
 
     print("Deleting TGW Connect Attachment ", connectAttachmentId)
 
@@ -368,7 +466,8 @@ def delTgwVpcAttachment(tgwVpcAttachmentId):
                 listConnectState.append(tgwConnectAttachment['State'])
             if all(element == 'deleted' for element in listConnectState):
                 eligibleDeletion = True
-                print("All Connect Attachments are in deleted state, start deleting VPC Attachment...")
+                print(
+                    "All Connect Attachments are in deleted state, start deleting VPC Attachment...")
 
     #print("Deleting TGW VPC Attachment", tgwVpcAttachmentId)
 
@@ -408,11 +507,13 @@ def delTgw(tgwId):
     if eligibleDeletion:
         ec2client.delete_transit_gateway(TransitGatewayId=tgwId)
 
+
 def terminateInstance(listInstanceId):
     """
     terminate instances whose ID are in in the list listInstanceId
     """
     ec2client.terminate_instances(InstanceIds=listInstanceId)
+
 
 def instanceTerminated(vpcId):
     """
@@ -429,7 +530,7 @@ def instanceTerminated(vpcId):
     while not eligibleDeletion:
         response = ec2client.describe_instances(Filters=newfilter)
         listInstanceState = []
-    
+
         if response['Reservations'] == []:
             eligibleDeletion = True
         else:
@@ -442,11 +543,13 @@ def instanceTerminated(vpcId):
                 eligibleDeletion = False
     return eligibleDeletion
 
+
 def delIgw(igwId):
     """
     delete Internet Gateway with ID igwId
     """
     ec2client.delete_internet_gateway(InternetGatewayId=igwId)
+
 
 def detachIgw(igwId, vpcId):
     """
@@ -454,11 +557,13 @@ def detachIgw(igwId, vpcId):
     """
     ec2client.detach_internet_gateway(InternetGatewayId=igwId, VpcId=vpcId)
 
+
 def delRt(rtId):
     """
     delete Route Table with ID rtId
     """
     ec2client.delete_route_table(RouteTableId=rtId)
+
 
 def delSubnet(subnetId):
     """
@@ -466,11 +571,13 @@ def delSubnet(subnetId):
     """
     ec2client.delete_subnet(SubnetId=subnetId)
 
+
 def delSg(sgId):
     """
     delete security group with ID sgId
     """
     ec2client.delete_security_group(GroupId=sgId)
+
 
 def delInSgRules():
     """
@@ -478,11 +585,13 @@ def delInSgRules():
     """
     ec2client.revoke_ingress()
 
+
 def delEgSgRules():
     """
     delete all egress security rules
     """
     ec2client.revoke_egress()
+
 
 def delVpc(vpcId):
     """
@@ -498,7 +607,6 @@ def delVpc(vpcId):
     while not eligibleDeletion:
         response = ec2client.describe_instances(Filters=instancefilter)
         listInstanceState = []
-
         if response['Reservations'] == []:
             eligibleDeletion = True
         else:
@@ -511,7 +619,7 @@ def delVpc(vpcId):
                 eligibleDeletion = False
 
     if eligibleDeletion:
-        #1 detach IGW 
+        #1 detach IGW
         #2 delete Route Tables except Main Route Table
         listIgwId = []
         igwfilter = [
@@ -535,7 +643,6 @@ def delVpc(vpcId):
             time.sleep(10)
 
         # check Route Tables
-        listRtId = []
         associatedSubnetId = []
         rtfilter = [
             {
@@ -546,18 +653,15 @@ def delVpc(vpcId):
         rtsResponse = ec2client.describe_route_tables(Filters=rtfilter)
         rts = rtsResponse['RouteTables']
         for rt in rts:
-            rtAssocations = rt['Associations']
-            for rtAssociation in rtAssocations:
+            for rtAssociation in rt['Associations']:
                 if rtAssociation['Main'] == False:
-                    listRtId.append(rt['RouteTableId'])
                     associatedSubnetId.append(rtAssociation['SubnetId'])
-
         # delete all associated Subnets
         print('Deleting instance associated subnets...')
         for associateSubnet in associatedSubnetId:
             delSubnet(associateSubnet)
             time.sleep(5)
-        
+
         # delete all remaining subnets
         subnetfilter = [
             {
@@ -574,11 +678,12 @@ def delVpc(vpcId):
         for subnetId in listSubnetId:
             delSubnet(subnetId)
 
-        # delete route tables
-        for rtId in listRtId:
-            delRt(rtId)
-            time.sleep(5)
-        
+        # Delete Route Tables
+        listRtId = listRt()
+        for rt in listRtId:
+            delRt(rt['Id'])
+            aliveBar(50, 0.05, "Deleting Route Table " + rt['Id'])
+
         # list all security group in VPC
         sgfilter = [
             {
@@ -612,14 +717,16 @@ def delVpc(vpcId):
         for sgInfo in listSgInfo:
             ingressRules, egressRules = listSgRules(sgInfo['Id'])
             if ingressRules:
-                for ingressRule in ingressRules:
-                    print('Deleting ingress rules...', ingressRule)
-                ec2client.revoke_security_group_ingress(GroupId=sgInfo['Id'], SecurityGroupRuleIds=ingressRules)
+                # for ingressRule in ingressRules:
+                #    print('Deleting ingress rules...', ingressRule)
+                ec2client.revoke_security_group_ingress(
+                    GroupId=sgInfo['Id'], SecurityGroupRuleIds=ingressRules)
                 time.sleep(5)
             if egressRules:
-                for egressRule in egressRules:
-                    print('Deleting egress rules...', egressRule)
-                ec2client.revoke_security_group_egress(GroupId=sgInfo['Id'], SecurityGroupRuleIds=egressRules)
+                # for egressRule in egressRules:
+                #    print('Deleting egress rules...', egressRule)
+                ec2client.revoke_security_group_egress(
+                    GroupId=sgInfo['Id'], SecurityGroupRuleIds=egressRules)
                 time.sleep(5)
 
         # delete security groups...
@@ -632,11 +739,59 @@ def delVpc(vpcId):
         time.sleep(45)
         ec2client.delete_vpc(VpcId=vpcId)
 
+
+def listCftStack():
+    """
+    return a list of CFT stacks 
+    """
+    response = cftclient.describe_stacks()
+    stacks = response['Stacks']
+    listStackName = []
+    for stack in stacks:
+        listStackName.append(stack['StackName'])
+    return listStackName
+
+
+def capic(stackName):
+    """
+    return True if the stack stackName is Cloud APIC CFT stack
+    """
+    capic = cftclient.describe_stacks(StackName=stackName)
+    # x1 is a list
+    x1 = capic['Stacks']
+    capicText = 'This template creates the environment to launch a cloud APIC cluster in an AWS environment.'
+
+    for x2 in x1:
+        try:
+            if x2['Description'] and capicText in x2['Description']:
+                return True
+        except KeyError:
+            exit()
+
+
+def capicStackToFile(listStackName):
+    """
+    return Cloud APIC CFT stack name
+    """
+    for stackName in listStackName:
+        if capic(stackName):
+            return stackName
+
+
+def delStack(StackName):
+    """
+    delete Cloud APIC CFT stack name
+    """
+    cftclient.delete_stack(StackName=StackName)
+
+
 def separator():
     print("=================================================================")
 
+
 def minusLine():
     print("-----------------------------------------------------------------")
+
 
 def main():
     # progressive bar
@@ -672,16 +827,17 @@ def main():
     listSgInfo = listSg()
     for sgInfo in listSgInfo:
         print('Security Group Name:', sgInfo['GroupName'], '|', sgInfo['Id'], sgInfo['VpcId'], '|', 'IngressRuleGroup:',
-              sgInfo['IngressSecGroup'],'|','EgressRuleGroup:', sgInfo['EgressSecGroup'])
-    
+              sgInfo['IngressSecGroup'], '|', 'EgressRuleGroup:', sgInfo['EgressSecGroup'])
+
     # Display Internet Gateways info
     separator()
     separator()
     print("Internet Gateway current information:")
     listIgwInfo = listIgw()
     for igwInfo in listIgwInfo:
-        print(igwInfo['Id'], '-->' ,'State',igwInfo['State'], '-->', igwInfo['VpcId'])
-    
+        print(igwInfo['Id'], '-->', 'State',
+              igwInfo['State'], '-->', igwInfo['VpcId'])
+
     # Display VPC info
     separator()
     separator()
@@ -689,13 +845,13 @@ def main():
     listVpcId = []
     for vpcInfo in listVpcInfo:
         listVpcId.append(vpcInfo['Id'])
-        print(vpcInfo['Id'],'-->' , 'State', vpcInfo['State'])
+        print(vpcInfo['Id'], '-->', 'State', vpcInfo['State'])
 
     # Display Transit Gateway info
     tgws = listTgw()
     print("Transit Gateways...")
     for tgw in tgws:
-        print("Transit Gateway:", tgw['Id'],'with', 'State:', tgw['State'])
+        print("Transit Gateway:", tgw['Id'], 'with', 'State:', tgw['State'])
 
     # Display Transit Gateway Peering Attachments
     separator()
@@ -708,9 +864,10 @@ def main():
             tgwPeerings = listTgwPeering(tgw['Id'])
             if tgwPeerings:
                 for tgwPeering in tgwPeerings:
-                    print("TGW Attachment", tgwPeering['Id'],"-->","State", tgwPeering['State'])
-    
-    if all(element in ['deleted','deleting'] for element in listTgwState):
+                    print("TGW Attachment",
+                          tgwPeering['Id'], "-->", "State", tgwPeering['State'])
+
+    if all(element in ['deleted', 'deleting'] for element in listTgwState):
         print("--> There is no TGW Peering Attachments")
 
     # Display Transit Gateway Connect Attachments
@@ -735,7 +892,8 @@ def main():
         for tgwConnect in tgwConnects:
             tgwConnectPeers = listTgwConnectPeer(tgwConnect['Id'])
             for tgwConnectPeer in tgwConnectPeers:
-                print("TGW Connect", tgwConnect['Id'], "-->", "Peer:", tgwConnectPeer['Id'],"State", tgwConnectPeer['State'])
+                print("TGW Connect", tgwConnect['Id'], "-->", "Peer:",
+                      tgwConnectPeer['Id'], "State", tgwConnectPeer['State'])
                 listTgwConnectPeerState.append(tgwConnectPeer['State'])
                 if tgwConnectPeer['State'] not in ['deleted', 'deleting']:
                     nondeletedTgwConnectPeers.append(tgwConnectPeer['Id'])
@@ -743,8 +901,8 @@ def main():
     # Display Transit Gateway Connect Peer in avaialble state
     separator()
     print("TGW Connect Peers in avaiable state:")
-    
-    if all(element in ['deleting','deleted'] for element in listTgwConnectPeerState):
+
+    if all(element in ['deleting', 'deleted'] for element in listTgwConnectPeerState):
         print("--> There is no TGW Peers in avaiable state")
 
     for nondeletedTgwConnectPeer in nondeletedTgwConnectPeers:
@@ -758,10 +916,10 @@ def main():
     print('Delete all TGW related objects.')
     print('Terminate Instances and then terminate VPC.')
     print('This process is destructive!!!')
-   
+
     # progressive bar
     aliveBar(100, 0.05, 'Start decomission TGW, VPC, Instances...')
-    
+
     if nondeletedTgwConnectAttachments != []:
         print("Deleting TGW Connect Attachments....")
         for nondeletedTgwConnectAttachment in nondeletedTgwConnectAttachments:
@@ -769,14 +927,13 @@ def main():
     else:
         print("All TGW Connect Attachments are gone.")
 
-    print("TGW VPC Attachments:")
+    minusLine()
+    print("Delete TGW VPC Attachments...")
     for tgw in tgws:
         tgwVpcAttachments = listTgwVpcAttachment(tgw['Id'])
         for tgwVpcAttachment in tgwVpcAttachments:
-            print(tgwVpcAttachment['Id'], '-->',
+            print('TGW VPC Attachment->', tgwVpcAttachment['Id'], '-->',
                   'State:', tgwVpcAttachment['State'])
-
-    print("Delete TGW VPC Attachments...")
 
     eligibleTgwVpcAttachment = []
     for tgw in tgws:
@@ -785,10 +942,10 @@ def main():
             if tgwVpcAttachment['State'] not in ['deleted', 'deleting']:
                 eligibleTgwVpcAttachment.append(tgwVpcAttachment['Id'])
                 delTgwVpcAttachment(tgwVpcAttachment['Id'])
-    
+
     # progressive bar
     for tgwVpcAttachment in eligibleTgwVpcAttachment:
-        aliveBar(1000 + randrange(100, 200), 0.05,
+        aliveBar(2000 + randrange(100, 200), 0.05,
                  "Deleting VPC Attachment " + tgwVpcAttachment)
 
     separator()
@@ -802,13 +959,13 @@ def main():
 
     # progressive bar
     for tgw in eligibleTgw:
-        aliveBar(2000 + randrange(100,200), 0.05, "Deleting TGW " + tgw)
-    
+        aliveBar(3000 + randrange(100, 200), 0.05, "Deleting TGW " + tgw)
+
     print("All Transit Gateways are deleted, starting decomissioning instances and VPC.")
 
     # progressive bar
     aliveBar(500, 0.05, 'Taking some rest..')
-   
+
     # terminate instances
     if terminatedFlag:
         print('--> Start terminating instances...')
@@ -820,8 +977,37 @@ def main():
 
     # progressive bar
     for ins in listInstanceId:
-        aliveBar(2000 + randrange(100,200), 0.05, "Terminating " + ins)
+        aliveBar(100 + randrange(100, 200), 0.05, "Terminating " + ins)
 
+    minusLine()
+    print('Release all EIP...')
+
+    eip = listEip()
+    for ip in eip:
+        releaseEip(ip['AllocationId'])
+        aliveBar(50 + randrange(10, 20), 0.05, "Releasing " + ip['PublicIp'])
+
+    cApicEip = listcApicEip()
+    for ip in cApicEip:
+        releaseEip(ip['AllocationId'])
+        aliveBar(70 + randrange(10, 20), 0.05,
+                 "Releasing EIP " + ip['PublicIp'])
+
+    # Deleting All ENIs
+    minusLine()
+    print('Delete all ENIs...')
+    eni = listcAicEni()
+    for e in eni:
+        delEni(e)
+        aliveBar(70 + randrange(10, 20), 0.05, "Deleting ENI " + e)
+
+    '''
+    rt = listRt()
+    for r in rt:
+        print(r['Id'], '-->' ,r['VpcId'])
+    '''
+
+    # Deleting VPC
     minusLine()
     print('--> Start deleting VPC...')
     for vpcId in listVpcId:
@@ -830,9 +1016,19 @@ def main():
 
     # progressive bar
     for vpc in listVpcId:
-        aliveBar(200 + randrange(50, 100), 0.05, "Deleting " + vpc)
+        aliveBar(300 + randrange(50, 100), 0.05, "Deleting " + vpc)
 
-    print('All VPCs are gone !!! Good bye !!!')
+    print('All VPCs are gone !!! Goodbye !!!')
+
+    listStackName = listCftStack()
+    cftcapic = capicStackToFile(listStackName)
+    print('Delete Cloud formation template', cftcapic)
+    delStack(cftcapic)
+
+    # progressive bar
+    aliveBar(1000, 0.05, 'Delete cft template...')
+    print('Done, all resources are completely gone!!!')
+
 
 if __name__ == "__main__":
     main()
