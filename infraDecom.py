@@ -642,27 +642,7 @@ def delVpc(vpcId):
             delIgw(igwId)
             time.sleep(10)
 
-        # check Route Tables
-        associatedSubnetId = []
-        rtfilter = [
-            {
-                'Name': 'vpc-id',
-                'Values': [str(vpcId)]
-            }
-        ]
-        rtsResponse = ec2client.describe_route_tables(Filters=rtfilter)
-        rts = rtsResponse['RouteTables']
-        for rt in rts:
-            for rtAssociation in rt['Associations']:
-                if rtAssociation['Main'] == False:
-                    associatedSubnetId.append(rtAssociation['SubnetId'])
-        # delete all associated Subnets
-        print('Deleting instance associated subnets...')
-        for associateSubnet in associatedSubnetId:
-            delSubnet(associateSubnet)
-            time.sleep(5)
-
-        # delete all remaining subnets
+        # delete all subnets
         subnetfilter = [
             {
                 'Name': 'vpc-id',
@@ -672,11 +652,14 @@ def delVpc(vpcId):
         subnetResponse = ec2client.describe_subnets(Filters=subnetfilter)
         subnets = subnetResponse['Subnets']
         listSubnetId = []
+
         for subnet in subnets:
             listSubnetId.append(subnet['SubnetId'])
+
         print('Deleting remaining subnets...')
         for subnetId in listSubnetId:
             delSubnet(subnetId)
+            time.sleep(15)
 
         # Delete Route Tables
         listRtId = listRt()
