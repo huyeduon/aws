@@ -23,21 +23,20 @@ Remember to set the tag to AWS resources. The tag here is extremely important as
 The tag using in main.tf script:
 
 tags = {
-    Name = "vpc1",
-    owner = "huyen"
-}
+    Name = "vpc1"
+    AciOwnerTag = "huyen"
+  }
 
 The custom filter in infraDecom.py script:
 
 custom_filter = [
     {
-        'Name': 'tag:owner',
-        'Values': ['huyen']
+        'Name': 'tag:AciOwnerTag',
+        'Values': ['?*']
     }
-
 ]
 
-owner in tag in main.tf must match Values in custom_filter.
+Tag key in main.tf must matches tag Name in custom_filter. In this example, both are using same value: AciOwnerTag
 
 # Run the script to decommission AWS resources:
 
