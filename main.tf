@@ -17,17 +17,17 @@ provider "aws" {
 
 resource "aws_vpc" "vpc1" {
   cidr_block = "10.1.0.0/16"
-  tags = {
-    Name = "vpc1",
-    owner = "huyen"
+ tags = {
+    Name = "vpc1"
+    AciOwnerTag = "huyen"
   }
 }
 
 resource "aws_vpc" "vpc2" {
   cidr_block = "10.2.0.0/16"
   tags = {
-    Name = "vpc2",
-    owner = "huyen"
+    Name = "vpc2"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -39,7 +39,7 @@ resource "aws_subnet" "net1vpc1" {
 
   tags = {
     Name = "net1vpc1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -49,7 +49,7 @@ resource "aws_subnet" "net2vpc1" {
 
   tags = {
     Name = "net2vpc1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -59,7 +59,7 @@ resource "aws_subnet" "net3vpc1" {
 
   tags = {
     Name = "net3vpc1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -69,7 +69,7 @@ resource "aws_subnet" "net4vpc1" {
 
   tags = {
     Name = "net4vpc1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -79,7 +79,7 @@ resource "aws_subnet" "net1vpc2" {
 
   tags = {
     Name = "net1vpc2"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -89,7 +89,7 @@ resource "aws_subnet" "net2vpc2" {
 
   tags = {
     Name = "net2vpc2"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -99,7 +99,7 @@ resource "aws_subnet" "net3vpc2" {
 
   tags = {
     Name = "net3vpc2"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -109,7 +109,7 @@ resource "aws_subnet" "net4vpc2" {
 
   tags = {
     Name = "net4vpc2"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -119,7 +119,7 @@ resource "aws_internet_gateway" "igw1" {
   vpc_id = aws_vpc.vpc1.id
   tags = {
     Name = "igw1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -127,7 +127,7 @@ resource "aws_internet_gateway" "igw2" {
   vpc_id = aws_vpc.vpc2.id
   tags = {
     Name = "igw2"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -143,8 +143,8 @@ resource "aws_route_table" "net1vpc1rt" {
   }
 
   tags = {
-    owner = "huyen"
     Name = "net1vpc1rt"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -157,8 +157,8 @@ resource "aws_route_table" "net1vpc2rt" {
   }
 
   tags = {
-    owner = "huyen"
     Name = "net1vpc2rt"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -182,7 +182,7 @@ resource "aws_ec2_transit_gateway" "tgw1" {
   transit_gateway_cidr_blocks=["172.16.11.0/24"]
   tags = {
     Name = "tgw1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -192,7 +192,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "vpc1" {
   vpc_id             = aws_vpc.vpc1.id
   tags = {
     Name = "vpc1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -202,7 +202,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "vpc2" {
   vpc_id             = aws_vpc.vpc2.id
   tags = {
     Name = "vpc2"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -213,7 +213,7 @@ resource "aws_ec2_transit_gateway_connect" "connect1" {
   transit_gateway_id      = aws_ec2_transit_gateway.tgw1.id
   tags = {
     Name = "connect1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -223,7 +223,7 @@ resource "aws_ec2_transit_gateway_connect" "connect2" {
   transit_gateway_id      = aws_ec2_transit_gateway.tgw1.id
    tags = {
     Name = "connect2"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -234,7 +234,7 @@ resource "aws_ec2_transit_gateway_connect_peer" "peer1connect1" {
   transit_gateway_attachment_id = aws_ec2_transit_gateway_connect.connect1.id
   tags = {
     Name = "peer1connect1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -244,7 +244,7 @@ resource "aws_ec2_transit_gateway_connect_peer" "peer2connect1" {
   transit_gateway_attachment_id = aws_ec2_transit_gateway_connect.connect1.id
   tags = {
     Name = "peer2connect1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -254,7 +254,7 @@ resource "aws_ec2_transit_gateway_connect_peer" "peer1connect2" {
   transit_gateway_attachment_id = aws_ec2_transit_gateway_connect.connect2.id
   tags = {
     Name = "peer1connect2"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -264,7 +264,7 @@ resource "aws_ec2_transit_gateway_connect_peer" "peer2connect2" {
   transit_gateway_attachment_id = aws_ec2_transit_gateway_connect.connect2.id
   tags = {
     Name = "peer2connect2"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -275,7 +275,8 @@ resource "aws_security_group" "vpc1sg" {
   vpc_id = aws_vpc.vpc1.id
 
   tags = {
-    owner = "huyen"
+    Name = "vpc1sg"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -285,7 +286,8 @@ resource "aws_security_group" "vpc2sg" {
   vpc_id = aws_vpc.vpc2.id
   
   tags = {
-    owner = "huyen"
+    Name = "vpc2sg"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -295,7 +297,8 @@ resource "aws_security_group" "mix12sg" {
   vpc_id = aws_vpc.vpc1.id
 
   tags = {
-    owner = "huyen"
+    Name = "mix12sg"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -305,7 +308,8 @@ resource "aws_security_group" "mix21sg" {
   vpc_id = aws_vpc.vpc2.id
 
   tags = {
-    owner = "huyen"
+    Name = "mix21sg"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -456,7 +460,7 @@ resource "aws_instance" "web1" {
 
   tags = {
     Name = "web1"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
@@ -473,7 +477,7 @@ resource "aws_instance" "web2" {
 
   tags = {
     Name = "web2"
-    owner = "huyen"
+    AciOwnerTag = "huyen"
   }
 }
 
