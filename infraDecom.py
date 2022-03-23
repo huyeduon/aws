@@ -649,7 +649,7 @@ def delVpc(vpcId):
                 'Values': [str(vpcId)]
             }
         ]
-        subnetResponse = ec2client.describe_subnets(Filters=subnetfilter)
+        subnetResponse = ec2client.describe_subnets(Filters=custom_filter)
         subnets = subnetResponse['Subnets']
         listSubnetId = []
 
@@ -674,7 +674,7 @@ def delVpc(vpcId):
                 'Values': [str(vpcId)]
             }
         ]
-        sgResponse = ec2client.describe_security_groups(Filters=sgfilter)
+        sgResponse = ec2client.describe_security_groups(Filters=custom_filter)
         listSgInfo = []
         for x2 in sgResponse['SecurityGroups']:
             sgInfo = {}
@@ -1011,7 +1011,6 @@ def main():
     # progressive bar
     aliveBar(1000, 0.05, 'Delete cft template...')
     print('Done, all resources are completely gone!!!')
-
 
 if __name__ == "__main__":
     main()
