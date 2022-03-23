@@ -232,8 +232,8 @@ def listTgwPeering(tgwId):
     tgwPeeringAttachments = response['TransitGatewayPeeringAttachments']
     for twgPeeringAttachment in tgwPeeringAttachments:
         tgwPeeringInfo = {}
-        tgwPeeringInfo['Id'] = tgwPeeringAttachments['TransitGatewayAttachmentId']
-        tgwPeeringInfo['State'] = tgwPeeringAttachments['State']
+        tgwPeeringInfo['Id'] = twgPeeringAttachment['TransitGatewayAttachmentId']
+        tgwPeeringInfo['State'] = twgPeeringAttachment['State']
         listTgwPeeringInfo.append(tgwPeeringInfo)
 
     return listTgwPeeringInfo
@@ -481,7 +481,7 @@ def delTgw(tgwId):
     delete Transit Gateway whose ID is tgwId
     """
     eligibleDeletion = False
-    newfilter = [
+    tgw_filter = [
         {
             'Name': 'transit-gateway-id',
             'Values': [str(tgwId)]
@@ -491,7 +491,7 @@ def delTgw(tgwId):
     while not eligibleDeletion:
         time.sleep(45)
         response = ec2client.describe_transit_gateway_attachments(
-            Filters=newfilter)
+            Filters=tgw_filter)
 
         if response == []:
             eligibleDeletion = True
@@ -521,14 +521,14 @@ def instanceTerminated(vpcId):
     return eligible deletion status, if status is True means all instances are gone or deleted we can proceed
     """
     eligibleDeletion = False
-    newfilter = [
+    instance_filter = [
         {
             'Name': 'vpc-id',
             'Values': [str(vpcId)]
         }
     ]
     while not eligibleDeletion:
-        response = ec2client.describe_instances(Filters=newfilter)
+        response = ec2client.describe_instances(Filters=instance_filter)
         listInstanceState = []
 
         if response['Reservations'] == []:
@@ -595,17 +595,17 @@ def delEgSgRules():
 
 def delVpc(vpcId):
     """
-    delete VPC with ID vpcId
+    delete VPC whose ID is vpcId
     """
     eligibleDeletion = False
-    instancefilter = [
+    instance_filter = [
         {
             'Name': 'vpc-id',
             'Values': [str(vpcId)]
         }
     ]
     while not eligibleDeletion:
-        response = ec2client.describe_instances(Filters=instancefilter)
+        response = ec2client.describe_instances(Filters=instance_filter)
         listInstanceState = []
         if response['Reservations'] == []:
             eligibleDeletion = True
@@ -642,39 +642,58 @@ def delVpc(vpcId):
             delIgw(igwId)
             time.sleep(10)
 
-        # delete all subnets
-        subnetfilter = [
+        # delete all subnets in the VPC
+        subnet_filter = [
             {
                 'Name': 'vpc-id',
                 'Values': [str(vpcId)]
             }
         ]
-        subnetResponse = ec2client.describe_subnets(Filters=custom_filter)
+        subnetResponse = ec2client.describe_subnets(Filters=subnet_filter)
         subnets = subnetResponse['Subnets']
         listSubnetId = []
 
         for subnet in subnets:
             listSubnetId.append(subnet['SubnetId'])
 
-        print('Deleting remaining subnets...')
+        print('Deleting subnets...')
         for subnetId in listSubnetId:
             delSubnet(subnetId)
-            time.sleep(15)
+            time.sleep(5)
+            aliveBar(150, 0.05, "Deleting Subnet " + subnetId)
 
         # Delete Route Tables
-        listRtId = listRt()
-        for rt in listRtId:
-            delRt(rt['Id'])
-            aliveBar(50, 0.05, "Deleting Route Table " + rt['Id'])
+        rt_filter = [
+            {
+                'Name': 'vpc-id',
+                'Values': [vpcId]
+            }
+        ]
+
+        # Delete non-Main Route Tables
+        listRt = []
+        rts = ec2client.describe_route_tables(Filters=rt_filter)
+
+        for rt in rts['RouteTables']:
+            rtAssociations = rt['Associations']
+            if rtAssociations == []:
+                listRt.append(rt['RouteTableId'])
+            else:
+                if all(element == 'false' for element in rtAssociations):
+                    listRt.append(rt['RouteTableId'])
+
+        for rtId in listRt:
+            delRt(rtId)
+            aliveBar(50, 0.05, "Deleting Route Table " + rtId)
 
         # list all security group in VPC
-        sgfilter = [
+        sg_filter = [
             {
                 'Name': 'vpc-id',
                 'Values': [str(vpcId)]
             }
         ]
-        sgResponse = ec2client.describe_security_groups(Filters=custom_filter)
+        sgResponse = ec2client.describe_security_groups(Filters=sg_filter)
         listSgInfo = []
         for x2 in sgResponse['SecurityGroups']:
             sgInfo = {}
@@ -700,14 +719,10 @@ def delVpc(vpcId):
         for sgInfo in listSgInfo:
             ingressRules, egressRules = listSgRules(sgInfo['Id'])
             if ingressRules:
-                # for ingressRule in ingressRules:
-                #    print('Deleting ingress rules...', ingressRule)
                 ec2client.revoke_security_group_ingress(
                     GroupId=sgInfo['Id'], SecurityGroupRuleIds=ingressRules)
                 time.sleep(5)
             if egressRules:
-                # for egressRule in egressRules:
-                #    print('Deleting egress rules...', egressRule)
                 ec2client.revoke_security_group_egress(
                     GroupId=sgInfo['Id'], SecurityGroupRuleIds=egressRules)
                 time.sleep(5)
@@ -738,9 +753,9 @@ def listCftStack():
 def capic(stackName):
     """
     return True if the stack stackName is Cloud APIC CFT stack
+    stack's description is used to recognize Cloud APIC CFT stack
     """
     capic = cftclient.describe_stacks(StackName=stackName)
-    # x1 is a list
     x1 = capic['Stacks']
     capicText = 'This template creates the environment to launch a cloud APIC cluster in an AWS environment.'
 
@@ -750,7 +765,6 @@ def capic(stackName):
                 return True
         except KeyError:
             exit()
-
 
 def capicStackToFile(listStackName):
     """
@@ -767,18 +781,15 @@ def delStack(StackName):
     """
     cftclient.delete_stack(StackName=StackName)
 
-
 def separator():
     print("=================================================================")
-
 
 def minusLine():
     print("-----------------------------------------------------------------")
 
-
 def main():
     # progressive bar
-    aliveBar(100, 0.05, 'Inventory...')
+    aliveBar(100, 0.05, 'Displaying current inventory status...')
     minusLine()
     # Display Instances info
     listInstanceInfo = listInstance()
@@ -984,17 +995,10 @@ def main():
         delEni(e)
         aliveBar(70 + randrange(10, 20), 0.05, "Deleting ENI " + e)
 
-    '''
-    rt = listRt()
-    for r in rt:
-        print(r['Id'], '-->' ,r['VpcId'])
-    '''
-
     # Deleting VPC
     minusLine()
     print('--> Start deleting VPC...')
     for vpcId in listVpcId:
-        #print('Deleting VPC', vpcId)
         delVpc(vpcId)
 
     # progressive bar
@@ -1004,12 +1008,12 @@ def main():
     print('All VPCs are gone !!! Goodbye !!!')
 
     listStackName = listCftStack()
-    cftcapic = capicStackToFile(listStackName)
-    print('Delete Cloud formation template', cftcapic)
-    delStack(cftcapic)
-
-    # progressive bar
-    aliveBar(1000, 0.05, 'Delete cft template...')
+    if listStackName:
+        cftcapic = capicStackToFile(listStackName)
+        print('Delete Cloud formation template', cftcapic)
+        delStack(cftcapic)
+        # progressive bar
+        aliveBar(1000, 0.05, 'Delete cft template...')
     print('Done, all resources are completely gone!!!')
 
 if __name__ == "__main__":
