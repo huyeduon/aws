@@ -43,11 +43,13 @@ custom_filter = [
 ]
 ### end of custom filter
 
+
 def aliveBar(x, sleepSpeed=0.05, title=''):
     with alive_bar(int(x), title=str(title)) as bar:   # default setting
         for i in range(int(x)):
             time.sleep(float(sleepSpeed))
             bar()
+
 
 def listEip():
     """
@@ -76,6 +78,7 @@ def listEip():
 
     return listEipInfo
 
+
 def listcApicEip():
     """
     return a list of IP
@@ -102,17 +105,20 @@ def listcApicEip():
 
     return listcApicEipInfo
 
+
 def disAssociateEip(AssociationId):
     """
     dis-associate EIP from instances
     """
     ec2client.disassociate_address(AssociationId=AssociationId)
 
+
 def releaseEip(AllocationId):
     """
     release EIP
     """
     ec2client.release_address(AllocationId=AllocationId)
+
 
 def listcApicInfraEni():
     """
@@ -135,6 +141,7 @@ def listcApicInfraEni():
 
     return listcApicEni
 
+
 def listcApicOobEni():
     """
     return a cAPIC OOB ENI
@@ -156,8 +163,10 @@ def listcApicOobEni():
 
     return listcApicEni
 
+
 def delEni(eni):
     ec2client.delete_network_interface(NetworkInterfaceId=eni)
+
 
 def listTgw():
     """
@@ -172,6 +181,7 @@ def listTgw():
         listTgwInfo.append(tgwInfo)
 
     return listTgwInfo
+
 
 def listTgwVpcAttachment(tgwId):
     """
@@ -196,6 +206,7 @@ def listTgwVpcAttachment(tgwId):
 
     return listTgwVpcAttachmentInfo
 
+
 def listTgwConnect(tgwId):
     """
     return a list of TGW Connect Attachment of Transit Gateway whose ID is tgwId
@@ -216,6 +227,7 @@ def listTgwConnect(tgwId):
         listTgwConnectInfo.append(tgwConnectInfo)
 
     return listTgwConnectInfo
+
 
 def listTgwConnectPeer(tgwConnectAttachId):
     """
@@ -239,6 +251,7 @@ def listTgwConnectPeer(tgwConnectAttachId):
 
     return listTgwConnectPeerInfo
 
+
 def listTgwPeering(tgwId):
     """
     return a list of TGW Peering Attachment of Transit Gateway whose ID is tgwId
@@ -260,6 +273,7 @@ def listTgwPeering(tgwId):
         listTgwPeeringInfo.append(tgwPeeringInfo)
 
     return listTgwPeeringInfo
+
 
 def listInstance():
     """
@@ -284,6 +298,7 @@ def listInstance():
 
     return listInstanceInfo
 
+
 def listVpc():
     """
     return a list of VPC 
@@ -297,6 +312,7 @@ def listVpc():
         listVpcInfo.append(vpcInfo)
 
     return listVpcInfo
+
 
 def listSubnet():
     """ 
@@ -313,6 +329,7 @@ def listSubnet():
         listSubnetInfo.append(subnetInfo)
 
     return listSubnetInfo
+
 
 def listSg():
     """
@@ -343,6 +360,7 @@ def listSg():
 
     return listSgInfo
 
+
 def listSgRules(sgId):
     """
     return list of ingress rule list and egress rules list of a security group
@@ -366,6 +384,7 @@ def listSgRules(sgId):
 
     return ingressRules, egressRules
 
+
 def listRt():
     """
     return a list of route table with properties of RouteTableId, VPC ID
@@ -380,6 +399,7 @@ def listRt():
         listRtInfo.append(rtInfo)
 
     return listRtInfo
+
 
 def listIgw():
     """
@@ -400,9 +420,11 @@ def listIgw():
 
     return listIgwInfo
 
+
 def delTgwPeering(tgwPeeringId):
     ec2client.delete_transit_gateway_peering_attachment(
         TransitGatewayAttachmentId=tgwPeeringId)
+
 
 def delTgwConnectPeer(connectPeerId):
     """
@@ -410,6 +432,7 @@ def delTgwConnectPeer(connectPeerId):
     """
     ec2client.delete_transit_gateway_connect_peer(
         TransitGatewayConnectPeerId=connectPeerId)
+
 
 def delTgwConnect(connectAttachmentId):
     """
@@ -455,6 +478,7 @@ def delTgwConnect(connectAttachmentId):
         ec2client.delete_transit_gateway_connect(
             TransitGatewayAttachmentId=connectAttachmentId)
 
+
 def delTgwVpcAttachment(tgwVpcAttachmentId):
     """
     find all tgwConnectAttachment who use that vpc as transport attachmentInfoList
@@ -492,6 +516,7 @@ def delTgwVpcAttachment(tgwVpcAttachmentId):
         ec2client.delete_transit_gateway_vpc_attachment(
             TransitGatewayAttachmentId=tgwVpcAttachmentId)
 
+
 def delTgw(tgwId):
     """
     delete Transit Gateway whose ID is tgwId
@@ -523,11 +548,13 @@ def delTgw(tgwId):
     if eligibleDeletion:
         ec2client.delete_transit_gateway(TransitGatewayId=tgwId)
 
+
 def terminateInstance(listInstanceId):
     """
     terminate instances whose ID are in in the list listInstanceId
     """
     ec2client.terminate_instances(InstanceIds=listInstanceId)
+
 
 def instanceTerminated(vpcId):
     """
@@ -557,11 +584,13 @@ def instanceTerminated(vpcId):
                 eligibleDeletion = False
     return eligibleDeletion
 
+
 def delIgw(igwId):
     """
     delete Internet Gateway with ID igwId
     """
     ec2client.delete_internet_gateway(InternetGatewayId=igwId)
+
 
 def detachIgw(igwId, vpcId):
     """
@@ -569,11 +598,13 @@ def detachIgw(igwId, vpcId):
     """
     ec2client.detach_internet_gateway(InternetGatewayId=igwId, VpcId=vpcId)
 
+
 def delRt(rtId):
     """
     delete Route Table with ID rtId
     """
     ec2client.delete_route_table(RouteTableId=rtId)
+
 
 def delSubnet(subnetId):
     """
@@ -581,11 +612,13 @@ def delSubnet(subnetId):
     """
     ec2client.delete_subnet(SubnetId=subnetId)
 
+
 def delSg(sgId):
     """
     delete security group with ID sgId
     """
     ec2client.delete_security_group(GroupId=sgId)
+
 
 def delInSgRules():
     """
@@ -593,11 +626,13 @@ def delInSgRules():
     """
     ec2client.revoke_ingress()
 
+
 def delEgSgRules():
     """
     delete all egress security rules
     """
     ec2client.revoke_egress()
+
 
 def delVpc(vpcId):
     """
@@ -743,6 +778,7 @@ def delVpc(vpcId):
         time.sleep(45)
         ec2client.delete_vpc(VpcId=vpcId)
 
+
 def listCftStack():
     """
     return a list of CFT stacks 
@@ -754,13 +790,14 @@ def listCftStack():
         listStackName.append(stack['StackName'])
     return listStackName
 
+
 def capic(stackName):
     """
     return True if the stack stackName is Cloud APIC CFT stack
     stack's description is used to recognize Cloud APIC CFT stack
     """
-    capic = cftclient.describe_stacks(StackName=stackName)
-    x1 = capic['Stacks']
+    capicStack = cftclient.describe_stacks(StackName=stackName)
+    x1 = capicStack['Stacks']
     capicText = 'This template creates the environment to launch a cloud APIC cluster in an AWS environment.'
 
     for x2 in x1:
@@ -768,7 +805,8 @@ def capic(stackName):
             if x2['Description'] and capicText in x2['Description']:
                 return True
         except KeyError:
-            exit()
+            return False
+
 
 def capicStackToFile(listStackName):
     """
@@ -778,14 +816,17 @@ def capicStackToFile(listStackName):
         if capic(stackName):
             return stackName
 
+
 def delStack(StackName):
     """
     delete Cloud APIC CFT stack name
     """
     cftclient.delete_stack(StackName=StackName)
 
+
 def separator():
     print("======================================================================================================")
+
 
 def main():
     # progressive bar
@@ -831,7 +872,6 @@ def main():
               igwInfo['State'], '-->', igwInfo['VpcId'])
 
     # Display VPC info
-    separator()
     separator()
     listVpcInfo = listVpc()
     listVpcId = []
@@ -981,9 +1021,9 @@ def main():
     for ins in listInstanceId:
         aliveBar(500 + randrange(100, 200), 0.05, "Terminating " + ins)
 
-    separator()
     eip = listEip()
     if eip != []:
+        separator()
         print('Disassocating and releasing instances EIP...')
         for ip in eip:
             if ip['AssociationId'] != None:
@@ -997,6 +1037,7 @@ def main():
 
     cApicEip = listcApicEip()
     if cApicEip != []:
+        separator()
         print('Disassocating and releasing cAPIC EIP')
         for ip in cApicEip:
             if ip['AssociationId'] != None:
@@ -1009,9 +1050,9 @@ def main():
                      "Releasing EIP " + ip['PublicIp'])
 
     # Deleting All ENIs
-    separator()
     eni = listcApicInfraEni()
     if eni:
+        separator()
         print('Delete cApic Infra ENI...')
         for e in eni:
             delEni(e)
@@ -1019,13 +1060,13 @@ def main():
 
     oobeni = listcApicOobEni()
     if oobeni:
+        separator()
         print('Delete cApic OOB ENI...')
         for e in oobeni:
             delEni(e)
             aliveBar(70 + randrange(10, 20), 0.05,
                      "Deleting Out-of-band ENI " + e)
     # Deleting VPC
-    separator()
     print('--> Start deleting VPC...')
 
     if listVpcId == []:
@@ -1041,13 +1082,18 @@ def main():
         print('All VPCs are gone !!! Goodbye !!!')
 
     listStackName = listCftStack()
-    if listStackName:
+    if listStackName != []:
         cftcapic = capicStackToFile(listStackName)
-        print('Delete Cloud formation template', cftcapic)
-        delStack(cftcapic)
-        # progressive bar
-        aliveBar(1000, 0.05, 'Delete cft template...')
+        if cftcapic:
+            print('Delete Cloud formation template', cftcapic)
+            delStack(cftcapic)
+            # progressive bar
+            aliveBar(1000, 0.05, 'Delete cft template...')
+        else:
+            print('There is no Cloud APIC CFT.')
+
     print('Done, all resources are completely gone!!!')
+
 
 if __name__ == "__main__":
     main()
