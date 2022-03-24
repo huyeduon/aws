@@ -70,7 +70,10 @@ def listEip():
         eipInfo = {}
         eipInfo['PublicIp'] = eip['PublicIp']
         eipInfo['AllocationId'] = eip['AllocationId']
-        eipInfo['AssociationId'] = eip['AssociationId']
+        if 'AssociationId' in eip:
+            eipInfo['AssociationId'] = eip['AssociationId']
+        else:
+            eipInfo['AssociationId'] = None
         listEipInfo.append(eipInfo)
 
     return listEipInfo
@@ -94,24 +97,27 @@ def listcApicEip():
         eipInfo = {}
         eipInfo['PublicIp'] = eip['PublicIp']
         eipInfo['AllocationId'] = eip['AllocationId']
-        eipInfo['AssociationId'] = eip['AssociationId']
+        if 'AssociationId' in eip:
+            eipInfo['AssociationId'] = eip['AssociationId']
+        else:
+            eipInfo['AssociationId'] = None
         listcApicEipInfo.append(eipInfo)
 
     return listcApicEipInfo
 
 
-def disAssociateEip(associationId):
+def disAssociateEip(AssociationId):
     """
     dis-associate EIP from instances
     """
-    ec2client.disassociate_address(AssociationId=associationId)
+    ec2client.disassociate_address(AssociationId=AssociationId)
 
 
-def releaseEip(allocId):
+def releaseEip(AllocationId):
     """
     release EIP
     """
-    ec2client.release_address(AllocationId=allocId)
+    ec2client.release_address(AllocationId=AllocationId)
 
 
 def listcApicInfraEni():
@@ -1005,7 +1011,7 @@ def main():
 
     # progressive bar
     for tgw in eligibleTgw:
-        aliveBar(3000 + randrange(100, 200), 0.05, "Deleting TGW " + tgw)
+        aliveBar(2500 + randrange(100, 200), 0.05, "Deleting TGW " + tgw)
 
     print("All Transit Gateways are deleted, starting decomissioning instances and VPC.")
 
@@ -1031,22 +1037,24 @@ def main():
     eip = listEip()
     # dis-associating Eip
     for ip in eip:
-        disAssociateEip(ip['AssociationId'])
-        aliveBar(50 + randrange(10, 20), 0.05,
-                 "Disassociating " + ip['PublicIp'])
-    # releasing Eip
-    for ip in eip:
+        if ip['AssociationId'] != None:
+            disAssociateEip(ip['AssociationId'])
+            aliveBar(50 + randrange(10, 20), 0.05,
+                     "Disassociating " + ip['PublicIp'])
+
         releaseEip(ip['AllocationId'])
         aliveBar(50 + randrange(10, 20), 0.05, "Releasing " + ip['PublicIp'])
 
     print('Disassocating and releasing cAPIC EIP')
     cApicEip = listcApicEip()
+    print(cApicEip)
+    print('Checking')
     for ip in cApicEip:
-        disAssociateEip(ip['AssociationId'])
-        aliveBar(50 + randrange(10, 20), 0.05,
-                 "Disassociating " + ip['PublicIp'])
-
-    for ip in cApicEip:
+        if ip['AssociationId'] != None:
+            disAssociateEip(ip['AssociationId'])
+            time.sleep(5)
+            aliveBar(50 + randrange(10, 20), 0.05,
+                     "Disassociating " + ip['PublicIp'])
         releaseEip(ip['AllocationId'])
         aliveBar(70 + randrange(10, 20), 0.05,
                  "Releasing EIP " + ip['PublicIp'])
@@ -1093,7 +1101,6 @@ def main():
         # progressive bar
         aliveBar(1000, 0.05, 'Delete cft template...')
     print('Done, all resources are completely gone!!!')
-
 
 if __name__ == "__main__":
     main()
