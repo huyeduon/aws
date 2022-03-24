@@ -1036,17 +1036,20 @@ def main():
 
     # Deleting All ENIs
     minusLine()
-    print('Delete cApic Infra ENI...')
+    
     eni = listcApicInfraEni()
-    for e in eni:
-        delEni(e)
-        aliveBar(70 + randrange(10, 20), 0.05, "Deleting Infra ENI " + e)
+    if eni:
+        print('Delete cApic Infra ENI...')
+        for e in eni:
+            delEni(e)
+            aliveBar(70 + randrange(10, 20), 0.05, "Deleting Infra ENI " + e)
 
-    print('Delete cApic OOB ENI...')
     oobeni = listcApicOobEni()
-    for e in oobeni:
-        delEni(e)
-        aliveBar(70 + randrange(10, 20), 0.05, "Deleting Out-of-band ENI " + e)
+    if oobeni:
+        print('Delete cApic OOB ENI...')
+        for e in oobeni:
+            delEni(e)
+            aliveBar(70 + randrange(10, 20), 0.05, "Deleting Out-of-band ENI " + e)
 
     # Deleting VPC
     minusLine()
