@@ -993,7 +993,7 @@ def main():
     print("All Transit Gateways are deleted, starting decomissioning instances and VPC.")
 
     # progressive bar
-    aliveBar(500, 0.05, 'Taking some rest..')
+    aliveBar(250, 0.05, 'Taking some rest..')
 
     # terminate instances
     if terminatedFlag:
@@ -1006,7 +1006,7 @@ def main():
 
     # progressive bar
     for ins in listInstanceId:
-        aliveBar(100 + randrange(100, 200), 0.05, "Terminating " + ins)
+        aliveBar(500 + randrange(100, 200), 0.05, "Terminating " + ins)
 
     minusLine()
     print('Disassocating and releasing instances EIP...')
