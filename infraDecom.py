@@ -43,13 +43,11 @@ custom_filter = [
 ]
 ### end of custom filter
 
-
 def aliveBar(x, sleepSpeed=0.05, title=''):
     with alive_bar(int(x), title=str(title)) as bar:   # default setting
         for i in range(int(x)):
             time.sleep(float(sleepSpeed))
             bar()
-
 
 def listEip():
     """
@@ -78,7 +76,6 @@ def listEip():
 
     return listEipInfo
 
-
 def listcApicEip():
     """
     return a list of IP
@@ -105,20 +102,17 @@ def listcApicEip():
 
     return listcApicEipInfo
 
-
 def disAssociateEip(AssociationId):
     """
     dis-associate EIP from instances
     """
     ec2client.disassociate_address(AssociationId=AssociationId)
 
-
 def releaseEip(AllocationId):
     """
     release EIP
     """
     ec2client.release_address(AllocationId=AllocationId)
-
 
 def listcApicInfraEni():
     """
@@ -141,7 +135,6 @@ def listcApicInfraEni():
 
     return listcApicEni
 
-
 def listcApicOobEni():
     """
     return a cAPIC OOB ENI
@@ -163,10 +156,8 @@ def listcApicOobEni():
 
     return listcApicEni
 
-
 def delEni(eni):
     ec2client.delete_network_interface(NetworkInterfaceId=eni)
-
 
 def listTgw():
     """
@@ -181,7 +172,6 @@ def listTgw():
         listTgwInfo.append(tgwInfo)
 
     return listTgwInfo
-
 
 def listTgwVpcAttachment(tgwId):
     """
@@ -206,7 +196,6 @@ def listTgwVpcAttachment(tgwId):
 
     return listTgwVpcAttachmentInfo
 
-
 def listTgwConnect(tgwId):
     """
     return a list of TGW Connect Attachment of Transit Gateway whose ID is tgwId
@@ -227,7 +216,6 @@ def listTgwConnect(tgwId):
         listTgwConnectInfo.append(tgwConnectInfo)
 
     return listTgwConnectInfo
-
 
 def listTgwConnectPeer(tgwConnectAttachId):
     """
@@ -251,7 +239,6 @@ def listTgwConnectPeer(tgwConnectAttachId):
 
     return listTgwConnectPeerInfo
 
-
 def listTgwPeering(tgwId):
     """
     return a list of TGW Peering Attachment of Transit Gateway whose ID is tgwId
@@ -273,7 +260,6 @@ def listTgwPeering(tgwId):
         listTgwPeeringInfo.append(tgwPeeringInfo)
 
     return listTgwPeeringInfo
-
 
 def listInstance():
     """
@@ -298,7 +284,6 @@ def listInstance():
 
     return listInstanceInfo
 
-
 def listVpc():
     """
     return a list of VPC 
@@ -312,7 +297,6 @@ def listVpc():
         listVpcInfo.append(vpcInfo)
 
     return listVpcInfo
-
 
 def listSubnet():
     """ 
@@ -329,7 +313,6 @@ def listSubnet():
         listSubnetInfo.append(subnetInfo)
 
     return listSubnetInfo
-
 
 def listSg():
     """
@@ -360,7 +343,6 @@ def listSg():
 
     return listSgInfo
 
-
 def listSgRules(sgId):
     """
     return list of ingress rule list and egress rules list of a security group
@@ -384,7 +366,6 @@ def listSgRules(sgId):
 
     return ingressRules, egressRules
 
-
 def listRt():
     """
     return a list of route table with properties of RouteTableId, VPC ID
@@ -399,7 +380,6 @@ def listRt():
         listRtInfo.append(rtInfo)
 
     return listRtInfo
-
 
 def listIgw():
     """
@@ -420,11 +400,9 @@ def listIgw():
 
     return listIgwInfo
 
-
 def delTgwPeering(tgwPeeringId):
     ec2client.delete_transit_gateway_peering_attachment(
         TransitGatewayAttachmentId=tgwPeeringId)
-
 
 def delTgwConnectPeer(connectPeerId):
     """
@@ -432,7 +410,6 @@ def delTgwConnectPeer(connectPeerId):
     """
     ec2client.delete_transit_gateway_connect_peer(
         TransitGatewayConnectPeerId=connectPeerId)
-
 
 def delTgwConnect(connectAttachmentId):
     """
@@ -478,7 +455,6 @@ def delTgwConnect(connectAttachmentId):
         ec2client.delete_transit_gateway_connect(
             TransitGatewayAttachmentId=connectAttachmentId)
 
-
 def delTgwVpcAttachment(tgwVpcAttachmentId):
     """
     find all tgwConnectAttachment who use that vpc as transport attachmentInfoList
@@ -516,7 +492,6 @@ def delTgwVpcAttachment(tgwVpcAttachmentId):
         ec2client.delete_transit_gateway_vpc_attachment(
             TransitGatewayAttachmentId=tgwVpcAttachmentId)
 
-
 def delTgw(tgwId):
     """
     delete Transit Gateway whose ID is tgwId
@@ -548,13 +523,11 @@ def delTgw(tgwId):
     if eligibleDeletion:
         ec2client.delete_transit_gateway(TransitGatewayId=tgwId)
 
-
 def terminateInstance(listInstanceId):
     """
     terminate instances whose ID are in in the list listInstanceId
     """
     ec2client.terminate_instances(InstanceIds=listInstanceId)
-
 
 def instanceTerminated(vpcId):
     """
@@ -584,13 +557,11 @@ def instanceTerminated(vpcId):
                 eligibleDeletion = False
     return eligibleDeletion
 
-
 def delIgw(igwId):
     """
     delete Internet Gateway with ID igwId
     """
     ec2client.delete_internet_gateway(InternetGatewayId=igwId)
-
 
 def detachIgw(igwId, vpcId):
     """
@@ -598,13 +569,11 @@ def detachIgw(igwId, vpcId):
     """
     ec2client.detach_internet_gateway(InternetGatewayId=igwId, VpcId=vpcId)
 
-
 def delRt(rtId):
     """
     delete Route Table with ID rtId
     """
     ec2client.delete_route_table(RouteTableId=rtId)
-
 
 def delSubnet(subnetId):
     """
@@ -612,13 +581,11 @@ def delSubnet(subnetId):
     """
     ec2client.delete_subnet(SubnetId=subnetId)
 
-
 def delSg(sgId):
     """
     delete security group with ID sgId
     """
     ec2client.delete_security_group(GroupId=sgId)
-
 
 def delInSgRules():
     """
@@ -626,13 +593,11 @@ def delInSgRules():
     """
     ec2client.revoke_ingress()
 
-
 def delEgSgRules():
     """
     delete all egress security rules
     """
     ec2client.revoke_egress()
-
 
 def delVpc(vpcId):
     """
@@ -778,7 +743,6 @@ def delVpc(vpcId):
         time.sleep(45)
         ec2client.delete_vpc(VpcId=vpcId)
 
-
 def listCftStack():
     """
     return a list of CFT stacks 
@@ -789,7 +753,6 @@ def listCftStack():
     for stack in stacks:
         listStackName.append(stack['StackName'])
     return listStackName
-
 
 def capic(stackName):
     """
@@ -807,7 +770,6 @@ def capic(stackName):
         except KeyError:
             exit()
 
-
 def capicStackToFile(listStackName):
     """
     return Cloud APIC CFT stack name
@@ -816,26 +778,19 @@ def capicStackToFile(listStackName):
         if capic(stackName):
             return stackName
 
-
 def delStack(StackName):
     """
     delete Cloud APIC CFT stack name
     """
     cftclient.delete_stack(StackName=StackName)
 
-
 def separator():
-    print("=================================================================")
-
-
-def minusLine():
-    print("-----------------------------------------------------------------")
-
+    print("======================================================================================================")
 
 def main():
     # progressive bar
     aliveBar(100, 0.05, 'Displaying current inventory status...')
-    minusLine()
+    separator()
     # Display Instances info
     listInstanceInfo = listInstance()
     terminatedFlag = False
@@ -861,7 +816,6 @@ def main():
 
     # Display Security Groups info
     separator()
-    separator()
     print("Security Groups:")
     listSgInfo = listSg()
     for sgInfo in listSgInfo:
@@ -869,7 +823,6 @@ def main():
               sgInfo['IngressSecGroup'], '|', 'EgressRuleGroup:', sgInfo['EgressSecGroup'])
 
     # Display Internet Gateways info
-    separator()
     separator()
     print("Internet Gateway current information:")
     listIgwInfo = listIgw()
@@ -950,10 +903,7 @@ def main():
 
     for nondeletedTgwConnectPeer in nondeletedTgwConnectPeers:
         print(nondeletedTgwConnectPeer)
-    separator()
-
     # Decomissioning process
-    separator()
     separator()
     print('Start decomissioning process.')
     print('Delete all TGW related objects.')
@@ -979,7 +929,7 @@ def main():
     else:
         print("All TGW Connect Attachments are gone.")
 
-    minusLine()
+    separator()
     print("Delete TGW VPC Attachments...")
     for tgw in tgws:
         tgwVpcAttachments = listTgwVpcAttachment(tgw['Id'])
@@ -1031,37 +981,35 @@ def main():
     for ins in listInstanceId:
         aliveBar(500 + randrange(100, 200), 0.05, "Terminating " + ins)
 
-    minusLine()
-    print('Disassocating and releasing instances EIP...')
-
+    separator()
     eip = listEip()
-    # dis-associating Eip
-    for ip in eip:
-        if ip['AssociationId'] != None:
-            disAssociateEip(ip['AssociationId'])
+    if eip != []:
+        print('Disassocating and releasing instances EIP...')
+        for ip in eip:
+            if ip['AssociationId'] != None:
+                disAssociateEip(ip['AssociationId'])
+                aliveBar(50 + randrange(10, 20), 0.05,
+                         "Disassociating " + ip['PublicIp'])
+
+            releaseEip(ip['AllocationId'])
             aliveBar(50 + randrange(10, 20), 0.05,
-                     "Disassociating " + ip['PublicIp'])
+                     "Releasing " + ip['PublicIp'])
 
-        releaseEip(ip['AllocationId'])
-        aliveBar(50 + randrange(10, 20), 0.05, "Releasing " + ip['PublicIp'])
-
-    print('Disassocating and releasing cAPIC EIP')
     cApicEip = listcApicEip()
-    print(cApicEip)
-    print('Checking')
-    for ip in cApicEip:
-        if ip['AssociationId'] != None:
-            disAssociateEip(ip['AssociationId'])
-            time.sleep(5)
-            aliveBar(50 + randrange(10, 20), 0.05,
-                     "Disassociating " + ip['PublicIp'])
-        releaseEip(ip['AllocationId'])
-        aliveBar(70 + randrange(10, 20), 0.05,
-                 "Releasing EIP " + ip['PublicIp'])
+    if cApicEip != []:
+        print('Disassocating and releasing cAPIC EIP')
+        for ip in cApicEip:
+            if ip['AssociationId'] != None:
+                disAssociateEip(ip['AssociationId'])
+                time.sleep(5)
+                aliveBar(50 + randrange(10, 20), 0.05,
+                         "Disassociating " + ip['PublicIp'])
+            releaseEip(ip['AllocationId'])
+            aliveBar(70 + randrange(10, 20), 0.05,
+                     "Releasing EIP " + ip['PublicIp'])
 
     # Deleting All ENIs
-    minusLine()
-
+    separator()
     eni = listcApicInfraEni()
     if eni:
         print('Delete cApic Infra ENI...')
@@ -1076,9 +1024,8 @@ def main():
             delEni(e)
             aliveBar(70 + randrange(10, 20), 0.05,
                      "Deleting Out-of-band ENI " + e)
-
     # Deleting VPC
-    minusLine()
+    separator()
     print('--> Start deleting VPC...')
 
     if listVpcId == []:
