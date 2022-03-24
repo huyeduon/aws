@@ -416,6 +416,11 @@ def listIgw():
     return listIgwInfo
 
 
+def delTgwPeering(tgwPeeringId):
+    ec2client.delete_transit_gateway_peering_attachment(
+        TransitGatewayAttachmentId=tgwPeeringId)
+
+
 def delTgwConnectPeer(connectPeerId):
     """
     delete tgw connnect peers of tgw connect attachment whose ID is connectPeerId
@@ -884,8 +889,9 @@ def main():
 
     # Display Transit Gateway Peering Attachments
     separator()
+    # Display Transit Gateway Peering Attachments
     print("Transit Gateway Peering Attachments:")
-
+    nondeletedTgwPeeringAttachments = []
     listTgwState = []
     for tgw in tgws:
         listTgwState.append(tgw['State'])
@@ -895,6 +901,9 @@ def main():
                 for tgwPeering in tgwPeerings:
                     print("TGW Attachment",
                           tgwPeering['Id'], "-->", "State", tgwPeering['State'])
+                    if tgwPeering['State'] not in ['deleted', 'deleting']:
+                        nondeletedTgwPeeringAttachments.append(
+                            tgwPeering['Id'])
 
     if all(element in ['deleted', 'deleting'] for element in listTgwState):
         print("--> There is no TGW Peering Attachments")
@@ -949,6 +958,15 @@ def main():
     # progressive bar
     aliveBar(100, 0.05, 'Start decomission TGW, VPC, Instances...')
 
+    if nondeletedTgwPeeringAttachments != []:
+        print("Deleting TGW Peering...")
+        for nondeletedTgwPeeringAttachment in nondeletedTgwPeeringAttachments:
+            delTgwPeering(nondeletedTgwPeeringAttachment)
+            aliveBar(5000 + randrange(100, 200), 0.05,
+                     "Deleting TGW Peering " + nondeletedTgwPeeringAttachment)
+    else:
+        print('There is no TGW peering exists')
+
     if nondeletedTgwConnectAttachments != []:
         print("Deleting TGW Connect Attachments....")
         for nondeletedTgwConnectAttachment in nondeletedTgwConnectAttachments:
@@ -993,7 +1011,7 @@ def main():
     print("All Transit Gateways are deleted, starting decomissioning instances and VPC.")
 
     # progressive bar
-    aliveBar(250, 0.05, 'Taking some rest..')
+    aliveBar(150, 0.05, 'Taking some rest..')
 
     # terminate instances
     if terminatedFlag:
