@@ -437,13 +437,6 @@ def capicStackToFile(listStackName):
         if capic(stackName):
             return stackName
 
-
-def delStack(StackName):
-    """
-    delete Cloud APIC CFT stack name
-    """
-    cftclient.delete_stack(StackName=StackName)
-
 def separator():
     print("======================================================================================================")
 
