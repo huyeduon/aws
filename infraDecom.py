@@ -1036,7 +1036,7 @@ def main():
 
     # Deleting All ENIs
     minusLine()
-    
+
     eni = listcApicInfraEni()
     if eni:
         print('Delete cApic Infra ENI...')
@@ -1049,19 +1049,24 @@ def main():
         print('Delete cApic OOB ENI...')
         for e in oobeni:
             delEni(e)
-            aliveBar(70 + randrange(10, 20), 0.05, "Deleting Out-of-band ENI " + e)
+            aliveBar(70 + randrange(10, 20), 0.05,
+                     "Deleting Out-of-band ENI " + e)
 
     # Deleting VPC
     minusLine()
     print('--> Start deleting VPC...')
-    for vpcId in listVpcId:
-        delVpc(vpcId)
 
-    # progressive bar
-    for vpc in listVpcId:
-        aliveBar(300 + randrange(50, 100), 0.05, "Deleting " + vpc)
+    if listVpcId == []:
+        print('There is no active VPC in the account.')
+    else:
+        for vpcId in listVpcId:
+            delVpc(vpcId)
 
-    print('All VPCs are gone !!! Goodbye !!!')
+        # progressive bar
+        for vpc in listVpcId:
+            aliveBar(300 + randrange(50, 100), 0.05, "Deleting " + vpc)
+
+        print('All VPCs are gone !!! Goodbye !!!')
 
     listStackName = listCftStack()
     if listStackName:
