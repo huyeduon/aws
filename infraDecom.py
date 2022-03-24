@@ -115,14 +115,36 @@ def releaseEip(allocId):
     ec2client.release_address(AllocationId=allocId)
 
 
-def listcAicEni():
+def listcApicInfraEni():
     """
-    return a cAPIC ENI
+    return a cAPIC Infra ENI
     """
     capicEni_filter = [
         {
             'Name': 'tag:aws:cloudformation:logical-id',
             'Values': ['rCAPICInfraInterface']
+        }
+    ]
+
+    listcApicEni = []
+
+    response = ec2client.describe_network_interfaces(
+        Filters=capicEni_filter)
+    capicEni = response['NetworkInterfaces']
+    for eni in capicEni:
+        listcApicEni.append(eni['NetworkInterfaceId'])
+
+    return listcApicEni
+
+
+def listcApicOobEni():
+    """
+    return a cAPIC OOB ENI
+    """
+    capicEni_filter = [
+        {
+            'Name': 'tag:aws:cloudformation:logical-id',
+            'Values': ['rCAPICOOBInterface']
         }
     ]
 
@@ -1014,11 +1036,17 @@ def main():
 
     # Deleting All ENIs
     minusLine()
-    print('Delete all ENIs...')
-    eni = listcAicEni()
+    print('Delete cApic Infra ENI...')
+    eni = listcApicInfraEni()
     for e in eni:
         delEni(e)
-        aliveBar(70 + randrange(10, 20), 0.05, "Deleting ENI " + e)
+        aliveBar(70 + randrange(10, 20), 0.05, "Deleting Infra ENI " + e)
+
+    print('Delete cApic OOB ENI...')
+    oobeni = listcApicOobEni()
+    for e in oobeni:
+        delEni(e)
+        aliveBar(70 + randrange(10, 20), 0.05, "Deleting Out-of-band ENI " + e)
 
     # Deleting VPC
     minusLine()
