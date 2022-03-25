@@ -1017,9 +1017,16 @@ def main():
             #print('Terminating instance', singleInstance)
             terminateInstance(singleInstance)
 
-    # progressive bar
-    for ins in listInstanceId:
-        aliveBar(1500 + randrange(100, 200), 0.05, "Terminating " + ins)
+     # progressive bar
+    if len(listInstanceId) == 1:
+        for ins in listInstanceId:
+            aliveBar(2000 + randrange(100, 200), 0.05, "Terminating " + ins)
+    elif len(listInstanceId) == 2:
+        for ins in listInstanceId:
+            aliveBar(1000 + randrange(100, 200), 0.05, "Terminating " + ins)
+    else:
+        for ins in listInstanceId:
+            aliveBar(750 + randrange(100, 200), 0.05, "Terminating " + ins)
 
     eip = listEip()
     if eip != []:
