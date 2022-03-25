@@ -1019,7 +1019,7 @@ def main():
 
     # progressive bar
     for ins in listInstanceId:
-        aliveBar(1000 + randrange(100, 200), 0.05, "Terminating " + ins)
+        aliveBar(1500 + randrange(100, 200), 0.05, "Terminating " + ins)
 
     eip = listEip()
     if eip != []:
