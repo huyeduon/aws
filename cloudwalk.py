@@ -300,7 +300,6 @@ def listSubnet():
     return a list of subnet ID each has properties: ID, VPC ID and State
     """
     listSubnetInfo = []
-
     subnets = ec2client.describe_subnets(Filters=custom_filter)
     for x2 in subnets['Subnets']:
         subnetInfo = {}
