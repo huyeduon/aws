@@ -12,7 +12,7 @@ from botocore.config import Config
 import time
 from alive_progress import alive_bar
 
-htduong = Config(
+htduong03 = Config(
     region_name='us-east-1',
     signature_version='v4',
     retries={
@@ -21,9 +21,9 @@ htduong = Config(
     }
 )
 
-session = boto3.session.Session(profile_name='htduong')
-ec2client = session.client('ec2', config=htduong)
-cftclient = session.client('cloudformation', config=htduong)
+session = boto3.session.Session(profile_name='htduong03')
+ec2client = session.client('ec2', config=htduong03)
+cftclient = session.client('cloudformation', config=htduong03)
 
 ### custom filter
 custom_filter = [
@@ -437,6 +437,16 @@ def capicStackToFile(listStackName):
         if capic(stackName):
             return stackName
 
+
+def listResourceGroup():
+    resources = resourcesclient.list_groups(
+        Filters=[ 
+            { 
+                'Name': 'CAPIC?*'
+            }
+    ])
+    return resources['GroupIdentifiers'][0]['GroupName']
+
 def separator():
     print("======================================================================================================")
 
@@ -567,6 +577,11 @@ def main():
         print('Cloud APIC Stack name: ', capicStack)
     else:
         print('There is no Cloud APIC Stack.')
+
+
+    print("Checking resources group")
+    rg = listResourceGroup()
+    print(rg)
 
 if __name__ == "__main__":
     main()

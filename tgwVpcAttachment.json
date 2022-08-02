@@ -1,0 +1,13 @@
+{'TransitGatewayVpcAttachments': [
+        {'TransitGatewayAttachmentId': 'tgw-attach-0a299ec8803c4bcc0', 'TransitGatewayId': 'tgw-048acbb3789c435bc', 'VpcId': 'vpc-0dfb07a4db157d2ab', 'VpcOwnerId': '278138852569', 'State': 'available', 'SubnetIds': ['subnet-0aa468720f9632983'
+            ],  'Options': {'DnsSupport': 'enable', 'Ipv6Support': 'disable', 'ApplianceModeSupport': 'disable'
+            }, 'Tags': [
+                {'Key': 'owner', 'Value': 'huyen'
+                },
+                {'Key': 'Name', 'Value': 'vpc1'
+                }
+            ]
+        }
+    ]
+    }
+}

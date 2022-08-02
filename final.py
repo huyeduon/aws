@@ -15,15 +15,14 @@
 
 import logging
 from random import randrange
-import re
 import boto3
 import sys
 from botocore.config import Config
 import time
 from alive_progress import alive_bar
 
-htduong03 = Config(
-    region_name='us-west-2',
+htduong = Config(
+    region_name='us-east-1',
     signature_version='v4',
     retries={
         'max_attempts': 10,
@@ -31,10 +30,9 @@ htduong03 = Config(
     }
 )
 
-session = boto3.session.Session(profile_name='htduong03')
-ec2client = session.client('ec2', config=htduong03)
-cftclient = session.client('cloudformation', config=htduong03)
-resourcesclient = session.client('resource-groups', config=htduong03)
+session = boto3.session.Session(profile_name='htduong')
+ec2client = session.client('ec2', config=htduong)
+cftclient = session.client('cloudformation', config=htduong)
 
 ### custom filter
 custom_filter = [
@@ -44,7 +42,6 @@ custom_filter = [
     }
 ]
 ### end of custom filter
-
 
 def aliveBar(x, sleepSpeed=0.05, title=''):
     with alive_bar(int(x), title=str(title)) as bar:   # default setting
@@ -792,7 +789,6 @@ def listCftStack():
         listStackName.append(stack['StackName'])
     return listStackName
 
-
 def capic(stackName):
     """
     return True if the stack stackName is Cloud APIC CFT stack
@@ -809,7 +805,6 @@ def capic(stackName):
         except KeyError:
             return False
 
-
 def capicStackToFile(listStackName):
     """
     return Cloud APIC CFT stack name
@@ -825,29 +820,8 @@ def delStack(StackName):
     """
     cftclient.delete_stack(StackName=StackName)
 
-
-def listResourceGroup():
-    listRg = []
-    listCapicRg = []
-    resources = resourcesclient.list_groups()
-
-    try:
-        listRg.append(resources['GroupIdentifiers'][0]['GroupName'])
-        for rg in listRg:
-            if 'CAPIC' in rg:
-                listCapicRg.append(rg)
-    
-        return listCapicRg
-    except IndexError:
-        print("There is no resource group.")
-
-def delete_group(rg):
-    response = resourcesclient.delete_group(Group=rg)
-
-
 def separator():
     print("======================================================================================================")
-
 
 def main():
     # progressive bar
@@ -1038,7 +1012,7 @@ def main():
             #print('Terminating instance', singleInstance)
             terminateInstance(singleInstance)
 
-     # progressive bar
+    # progressive bar
     if len(listInstanceId) == 1:
         for ins in listInstanceId:
             aliveBar(2500 + randrange(100, 200), 0.05, "Terminating " + ins)
@@ -1119,19 +1093,8 @@ def main():
             aliveBar(1000, 0.05, 'Delete cft template...')
         else:
             print('There is no Cloud APIC CFT.')
-
-    print("Checking resources group")
-    listCapicRg = listResourceGroup()
-
-    if listCapicRg == None:
-        print('No resource exist.')
-    else:
-        for rg in listCapicRg:
-            print(rg)
-            delete_group(rg)
-        
+    
     print('Done, all resources are completely gone!!!')
-
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,177 @@
+{
+    "polUni": {
+        "attributes": {},
+        "children": [
+            {
+                "fvTenant": {
+                    "attributes": {
+                        "name": "infra"
+                    },
+                    "children": [
+                        {
+                            "cloudtemplateInfraNetwork": {
+                                "attributes": {
+                                    "name": "default",
+                                    "vrfName": "overlay-1",
+                                    "status": "created,modified"
+                                },
+                                "children": [
+                                    {
+                                        "cloudtemplateIntNetwork": {
+                                            "attributes": {
+                                                "name": "default"
+                                            },
+                                            "children": [
+                                                {
+                                                    "cloudRegionName": {
+                                                        "attributes": {
+                                                            "region": "us-east-1",
+                                                            "provider": "aws"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "cloudtemplateStats": {
+                                            "attributes": {
+                                                "name": "default"
+                                            },
+                                            "children": [
+                                                {
+                                                    "cloudRegionName": {
+                                                        "attributes": {
+                                                            "region": "us-east-1",
+                                                            "provider": "aws"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "cloudtemplateProfile": {
+                                            "attributes": {
+                                                "name": "default",
+                                                "status": "created,modified",
+                                                "routerMgmtInterfacePublicIp": "yes",
+                                                "routerDataInterfacePublicIp": "yes",
+                                                "routerThroughput": "T2",
+                                                "routerUsername": "cisco",
+                                                "routerPassword": "123Cisco123!",
+                                                "routerTcpMss": "1300"
+                                            },
+                                            "children": []
+                                        }
+                                    },
+                                    {
+                                        "cloudtemplateHubNetwork": {
+                                            "attributes": {
+                                                "name": "default",
+                                                "status": "created,modified"
+                                            },
+                                            "children": [
+                                                {
+                                                    "cloudtemplateHubNetworkName": {
+                                                        "attributes": {
+                                                            "name": "hub1",
+                                                            "asn": "65099",
+                                                            "status": "created,modified"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "cloudRegionName": {
+                                                                    "attributes": {
+                                                                        "provider": "aws",
+                                                                        "region": "us-east-1"
+                                                                    },
+                                                                    "children": [
+                                                                        {
+                                                                            "cloudtemplateTgwCidr": {
+                                                                                "attributes": {
+                                                                                    "cidr": "172.16.11.0/24",
+                                                                                    "status": "created"
+                                                                                },
+                                                                                "children": []
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            },
+                                                            {
+                                                                "cloudtemplateTgwConnect": {
+                                                                    "attributes": {
+                                                                        "enabled": "yes",
+                                                                        "status": "created,modified"
+                                                                    },
+                                                                    "children": []
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "cloudtemplateExtNetwork": {
+                                            "attributes": {
+                                                "name": "default"
+                                            },
+                                            "children": [
+                                                {
+                                                    "cloudRegionName": {
+                                                        "attributes": {
+                                                            "region": "us-east-1",
+                                                            "provider": "aws"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                },
+                                                {
+                                                    "cloudtemplateVpnNetwork": {
+                                                        "attributes": {
+                                                            "name": "default"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "cloudDomP": {
+                    "attributes": {},
+                    "children": [
+                        {
+                            "cloudProvP": {
+                                "attributes": {
+                                    "vendor": "aws"
+                                },
+                                "children": []
+                            }
+                        },
+                        {
+                            "cloudBgpAsP": {
+                                "attributes": {
+                                    "asn": "65009",
+                                    "status": "created,modified"
+                                },
+                                "children": []
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
