@@ -7,23 +7,23 @@
 import logging
 from random import randrange
 import boto3
-import sys
+import argparse
 from botocore.config import Config
 import time
 from alive_progress import alive_bar
 
-htduong = Config(
-    region_name='us-west-2',
-    signature_version='v4',
-    retries={
-        'max_attempts': 10,
-        'mode': 'standard'
-    }
-)
 
-session = boto3.session.Session(profile_name='htduong')
-ec2client = session.client('ec2', config=htduong)
-cftclient = session.client('cloudformation', config=htduong)
+# Define ec2client as a global variable
+ec2client = None
+
+def initialize_clients(profile_name, region_name):
+    """
+    Initialize AWS clients with the provided profile and region.
+    """
+    global ec2client
+    session = boto3.session.Session(profile_name=profile_name, region_name=region_name)
+    ec2client = session.client('ec2')
+
 
 ### custom filter
 custom_filter = [
@@ -200,6 +200,8 @@ def main():
         insecureRules(sgId)
     separator()
     print("Instances on the account:")
+    if not listInstanceInfo:
+        print("There is no instance.")
     for instance in listInstanceInfo:
         print(instance['Id'], '-->', 'in VPC',
               instance['VpcId'], '--> State', instance['State'])
@@ -215,7 +217,7 @@ def main():
             else:
                 terminatedFlag = True
     else:
-        print('All instances are gone!')
+        print('All instances are gone! or no more instances.')
         terminatedFlag = False
 
     # Display VPC info
@@ -227,4 +229,16 @@ def main():
         print(vpcInfo['Id'], '-->', 'State', vpcInfo['State'])
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Script to remove insecure rules where source or destination is 0.0.0.0/0', 
+        usage="python3 sgfix.py profile_name region_name",
+        epilog='To run the script: python3 sgfix.py profile_name region_name')
+    parser.add_argument('profile_name', help='AWS profile name')
+    parser.add_argument('region_name', help='AWS region name')
+    args = parser.parse_args()
+
+    # Initialize AWS clients
+    initialize_clients(args.profile_name, args.region_name)
+
+    # Call the main function
     main()
