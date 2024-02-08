@@ -176,10 +176,10 @@ def insecureRules(sgId):
     ingressRules, egressRules = listSgRules(sgId)
     for ingressRule in ingressRules:
         if listRuleSource(ingressRule):
-            print(f"Security Group {sgId} --> Insecure ingress rule: {ingressRule}")
+            print(f"Security Group: {sgId} --> Insecure Ingress Rule: {ingressRule}")
     for egressRule in egressRules:
         if listRuleDestination(egressRule):
-            print(f"Security Group {sgId} --> Insecure egress rule: {egressRule}")
+            print(f"Security Group: {sgId} --> Insecure Egress Rule: {egressRule}")
 
 
 def minusLine():
@@ -188,13 +188,13 @@ def minusLine():
 
 def main():
     # progressive bar
-    aliveBar(10, 0.05, 'Displaying current inventory status...')
+    aliveBar(50, 0.05, 'Querying existing inventory ...')
     separator()
     # Display Instances info
     listInstanceInfo = listInstance()
     listInstanceId = []
     listSgInfo = listSg()
-    print("Insecure ingress and egress rules:")
+    print("Insecure Ingress and Egress Rules:")
     for sg in listSgInfo:
         sgId = sg['Id']
         insecureRules(sgId)
