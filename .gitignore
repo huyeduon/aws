@@ -3,7 +3,7 @@ s3/
 provisioning/
 bin/
 include/
-
+.DS_Store
 # terraform 
 *.tfvars
 # Byte-compiled / optimized / DLL files
