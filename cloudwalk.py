@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/Library/Frameworks/Python.framework/Versions/3.10/bin/python3
 # -*- coding: utf-8 -*-
 
 # Requirements: python3, boto3, aws cli
@@ -12,7 +12,7 @@ from botocore.config import Config
 import time
 from alive_progress import alive_bar
 
-htduong03 = Config(
+htduong08 = Config(
     region_name='us-east-1',
     signature_version='v4',
     retries={
@@ -21,9 +21,9 @@ htduong03 = Config(
     }
 )
 
-session = boto3.session.Session(profile_name='htduong03')
-ec2client = session.client('ec2', config=htduong03)
-cftclient = session.client('cloudformation', config=htduong03)
+session = boto3.session.Session(profile_name='htduong08')
+ec2client = session.client('ec2', config=htduong08)
+cftclient = session.client('cloudformation', config=htduong08)
 
 ### custom filter
 custom_filter = [

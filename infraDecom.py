@@ -15,15 +15,18 @@
 
 import logging
 from random import randrange
+from botocore.config import Config
 import re
 import boto3
 import sys
-from botocore.config import Config
 import time
 from alive_progress import alive_bar
 
-htduong03 = Config(
-    region_name='us-west-2',
+profileName = "htduong06"
+regionName = "eu-south-1"
+
+htduong06 = Config(
+    region_name=regionName,
     signature_version='v4',
     retries={
         'max_attempts': 10,
@@ -31,10 +34,11 @@ htduong03 = Config(
     }
 )
 
-session = boto3.session.Session(profile_name='htduong03')
-ec2client = session.client('ec2', config=htduong03)
-cftclient = session.client('cloudformation', config=htduong03)
-resourcesclient = session.client('resource-groups', config=htduong03)
+
+session = boto3.session.Session(profile_name="htduong06")
+ec2client = session.client('ec2', config=htduong06)
+cftclient = session.client('cloudformation', config=htduong06)
+resourcesclient = session.client('resource-groups', config=htduong06)
 
 ### custom filter
 custom_filter = [

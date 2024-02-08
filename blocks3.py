@@ -3,7 +3,7 @@
 import boto3
 from botocore.config import Config
 
-htduong01 = Config(
+htduong09 = Config(
     region_name='us-east-1',
     retries={
         'max_attempts': 10,
@@ -11,8 +11,8 @@ htduong01 = Config(
     }
 )
 
-session = boto3.session.Session(profile_name='htduong01')
-s3 = session.client('s3', config=htduong01)
+session = boto3.session.Session(profile_name='htduong09')
+s3 = session.client('s3', config=htduong09)
 
 # Output the bucket names
 def listBuckets():
