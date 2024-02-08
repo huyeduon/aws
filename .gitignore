@@ -16,6 +16,12 @@ __pycache__/
 .secrets/
 # Distribution / packaging
 .Python
+include/
+bin/
+provisioning/
+__pycache__/
+pyvenv.cfg
+s3/
 build/
 develop-eggs/
 dist/
